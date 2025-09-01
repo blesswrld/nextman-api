@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { X, Plus } from "lucide-react";
 import { HistorySidebar } from "@/components/history-sidebar";
 import { useEffect } from "react";
+import { ResponseHeaders } from "@/components/response-headers";
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -218,16 +219,83 @@ export default function HomePage() {
                     {/* Нижняя панель: Ответ */}
                     <ResizablePanel defaultSize={60} minSize={20}>
                         <div className="p-4 h-full flex flex-col">
-                            <h2 className="text-lg font-semibold mb-2">
-                                Response
-                            </h2>
-                            <div className="flex-grow">
-                                <CodeEditor
-                                    value={activeTab.response}
-                                    readOnly={true}
-                                    key={activeTab.id + activeTab.response} // Ключ для принудительного ререндера
-                                />
+                            <div className="flex items-center gap-4 mb-2">
+                                <h2 className="text-lg font-semibold">
+                                    Response
+                                </h2>
+                                {activeTab.response && (
+                                    <div className="flex items-center gap-4 text-sm">
+                                        <span>
+                                            Status:{" "}
+                                            <span
+                                                className={cn(
+                                                    "font-semibold",
+                                                    activeTab.response.status >=
+                                                        200 &&
+                                                        activeTab.response
+                                                            .status < 300
+                                                        ? "text-green-500"
+                                                        : "text-red-500"
+                                                )}
+                                            >
+                                                {activeTab.response.status}{" "}
+                                                {activeTab.response.statusText}
+                                            </span>
+                                        </span>
+                                        <span>
+                                            Time:{" "}
+                                            <span className="font-semibold text-blue-500">
+                                                {activeTab.response.time} ms
+                                            </span>
+                                        </span>
+                                    </div>
+                                )}
                             </div>
+
+                            {activeTab.response ? (
+                                <Tabs
+                                    defaultValue="body"
+                                    className="flex-grow flex flex-col"
+                                >
+                                    <TabsList>
+                                        <TabsTrigger value="body">
+                                            Body
+                                        </TabsTrigger>
+                                        <TabsTrigger value="headers">
+                                            Headers
+                                        </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent
+                                        value="body"
+                                        className="mt-4 flex-grow"
+                                    >
+                                        <CodeEditor
+                                            value={activeTab.response.body}
+                                            readOnly={true}
+                                            key={
+                                                activeTab.id +
+                                                activeTab.response.body
+                                            }
+                                        />
+                                    </TabsContent>
+                                    <TabsContent
+                                        value="headers"
+                                        className="mt-4 overflow-y-auto"
+                                    >
+                                        <ResponseHeaders
+                                            headers={activeTab.response.headers}
+                                        />
+                                    </TabsContent>
+                                </Tabs>
+                            ) : (
+                                <div className="flex-grow flex items-center justify-center border rounded-md bg-muted/20">
+                                    <p className="text-muted-foreground">
+                                        {activeTab.loading
+                                            ? "Waiting for response..."
+                                            : "Send a request to see the response here"}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </ResizablePanel>
                 </ResizablePanelGroup>

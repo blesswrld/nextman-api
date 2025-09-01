@@ -11,7 +11,7 @@ export interface RequestTab {
     queryParams: KeyValuePair[];
     headers: KeyValuePair[];
     body: string;
-    response: string;
+    response: ResponseData | null;
     loading: boolean;
 }
 
@@ -29,6 +29,14 @@ interface TabsState {
     init?: () => void;
 }
 
+export interface ResponseData {
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    body: string; // Тело ответа уже отформатировано
+    time: number; // Время выполнения в мс
+}
+
 // Функция для создания новой пустой вкладки
 const createNewTab = (data?: Partial<RequestTab>): RequestTab => ({
     id: crypto.randomUUID(),
@@ -40,7 +48,7 @@ const createNewTab = (data?: Partial<RequestTab>): RequestTab => ({
     ],
     headers: data?.headers || [{ id: crypto.randomUUID(), key: "", value: "" }],
     body: data?.body || "",
-    response: data?.response || "",
+    response: null,
     loading: data?.loading || false,
     ...data,
 });
@@ -125,7 +133,8 @@ export const useTabsStore = create<TabsState>((set, get) => ({
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (!activeTab) return;
 
-        updateActiveTab({ loading: true, response: "" });
+        updateActiveTab({ loading: true, response: null });
+        const startTime = performance.now(); // Засекаем время начала
 
         try {
             let parsedBody: string | undefined = undefined;
@@ -155,35 +164,71 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                     url: finalUrl,
                     method: activeTab.method,
                     headers: finalHeaders,
-                    body: parsedBody, // Передаем тело как строку
+                    body: parsedBody,
                 }),
             });
 
-            if (!res.ok)
-                throw new Error(
-                    `Proxy request failed: ${res.status} ${res.statusText}`
-                );
+            const endTime = performance.now(); // Засекаем время окончания
+            const requestTime = Math.round(endTime - startTime);
+
             const data = await res.json();
+
+            if (!res.ok) {
+                // Если прокси вернул ошибку, создаем "фейковый" объект ответа
+                throw {
+                    response: {
+                        status: data.status || 500,
+                        statusText: data.statusText || "Proxy Error",
+                        headers: {},
+                        body: JSON.stringify(data, null, 2),
+                        time: requestTime,
+                    },
+                    message: data.error || "Proxy request failed",
+                };
+            }
+
             let formattedBody = data.body;
             try {
                 formattedBody = JSON.stringify(JSON.parse(data.body), null, 2);
             } catch (e) {}
-            data.body = formattedBody;
 
-            updateActiveTab({ response: JSON.stringify(data, null, 2) });
+            const responseData: ResponseData = {
+                status: data.status,
+                statusText: data.statusText,
+                headers: data.headers,
+                body: formattedBody,
+                time: requestTime,
+            };
+
+            updateActiveTab({ response: responseData });
 
             await addHistoryItem({
                 url: activeTab.url,
                 method: activeTab.method,
             });
-        } catch (error) {
-            const errorResponse =
-                error instanceof Error
-                    ? { error: error.message }
-                    : { error: "An unknown error occurred" };
-            updateActiveTab({
-                response: JSON.stringify(errorResponse, null, 2),
-            });
+            // @ts-ignore
+        } catch (error: any) {
+            const endTime = performance.now();
+            const requestTime = Math.round(endTime - startTime);
+
+            // Если ошибка уже содержит объект ответа, используем его
+            if (error.response) {
+                updateActiveTab({ response: error.response });
+                return;
+            }
+
+            const errorResponse: ResponseData = {
+                status: 0,
+                statusText: "Client Error",
+                headers: {},
+                body: JSON.stringify(
+                    { error: error.message || "An unknown error occurred" },
+                    null,
+                    2
+                ),
+                time: requestTime,
+            };
+            updateActiveTab({ response: errorResponse });
         } finally {
             updateActiveTab({ loading: false });
         }
