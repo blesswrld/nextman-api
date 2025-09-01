@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
-import { PlusCircle, Folder, FileText } from "lucide-react";
+import { PlusCircle, Folder, FileText, Trash2 } from "lucide-react";
 import {
     useCollectionsStore,
     CollectionWithRequests,
@@ -23,12 +23,29 @@ import {
     DialogTrigger,
     DialogFooter,
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function CollectionsSidebar() {
-    const { collections, loading, fetchCollections, createCollection } =
-        useCollectionsStore();
+    const {
+        collections,
+        loading,
+        fetchCollections,
+        createCollection,
+        deleteCollection,
+        deleteRequest,
+    } = useCollectionsStore();
     const addTab = useTabsStore((state) => state.addTab);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newCollectionName, setNewCollectionName] = useState("");
@@ -50,8 +67,7 @@ export function CollectionsSidebar() {
             name: request.name || "Saved Request",
             method: request.method || "GET",
             url: request.url || "",
-            body: JSON.stringify(request.body, null, 2) || "",
-            // Преобразование jsonb в KeyValuePair[]
+            body: request.body ? JSON.stringify(request.body, null, 2) : "",
             headers: Array.isArray(request.headers)
                 ? // @ts-ignore
                   (request.headers as any)
@@ -118,26 +134,123 @@ export function CollectionsSidebar() {
                                 key={collection.id}
                                 value={collection.id}
                             >
-                                <AccordionTrigger>
-                                    <div className="flex items-center gap-2">
+                                <AccordionTrigger className="hover:bg-muted rounded-md px-2 group">
+                                    <div className="flex items-center gap-2 flex-grow">
                                         <Folder className="h-4 w-4" />
-                                        <span>{collection.name}</span>
+                                        <span className="truncate">
+                                            {collection.name}
+                                        </span>
                                     </div>
+                                    {/* Кнопка удаления коллекции */}
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>
+                                                    Are you sure?
+                                                </AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This will permanently delete
+                                                    the collection &quot
+                                                    {collection.name}&quot and
+                                                    all requests inside it.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>
+                                                    Cancel
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={async (e) => {
+                                                        e.preventDefault();
+                                                        await deleteCollection(
+                                                            collection.id
+                                                        );
+                                                    }}
+                                                >
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     {collection.requests.length > 0 ? (
                                         collection.requests.map((req) => (
                                             <div
                                                 key={req.id}
-                                                onClick={() =>
-                                                    handleRequestClick(req)
-                                                }
-                                                className="flex items-center gap-2 p-2 rounded-md hover:bg-muted cursor-pointer"
+                                                className="flex items-center gap-2 pr-2 rounded-md hover:bg-muted group"
                                             >
-                                                <FileText className="h-4 w-4" />
-                                                <span className="text-sm">
-                                                    {req.name}
-                                                </span>
+                                                <div
+                                                    onClick={() =>
+                                                        handleRequestClick(req)
+                                                    }
+                                                    className="flex items-center gap-2 p-2 cursor-pointer flex-grow"
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                    <span className="text-sm truncate">
+                                                        {req.name}
+                                                    </span>
+                                                </div>
+                                                {/* Кнопка удаления запроса */}
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                                            onClick={(e) =>
+                                                                e.stopPropagation()
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>
+                                                                Are you sure?
+                                                            </AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This will
+                                                                permanently
+                                                                delete the
+                                                                request &quot
+                                                                {req.name}&quot.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>
+                                                                Cancel
+                                                            </AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                onClick={async (
+                                                                    e
+                                                                ) => {
+                                                                    // Предотвращаем стандартное поведение кнопки, если оно есть
+                                                                    e.preventDefault();
+                                                                    // Вызываем нашу асинхронную функцию и дожидаемся ее завершения
+                                                                    await deleteRequest(
+                                                                        req.id
+                                                                    );
+                                                                }}
+                                                            >
+                                                                Delete
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </div>
                                         ))
                                     ) : (

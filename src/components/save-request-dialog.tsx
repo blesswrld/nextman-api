@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { useCollectionsStore } from "@/store/collections";
 import { useTabsStore } from "@/store/tabs";
-import { KeyValuePair } from "./key-value-editor";
 
 export function SaveRequestDialog() {
     const [dialogOpen, setDialogOpen] = useState(false);
