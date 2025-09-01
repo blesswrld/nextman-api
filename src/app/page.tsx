@@ -23,6 +23,7 @@ import { X, Plus } from "lucide-react";
 import { HistorySidebar } from "@/components/history-sidebar";
 import { useEffect } from "react";
 import { ResponseHeaders } from "@/components/response-headers";
+import { EditableTab } from "@/components/editable-tab";
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -93,18 +94,17 @@ export default function HomePage() {
                             activeTabId === tab.id && "bg-background shadow-sm"
                         )}
                     >
-                        <span
-                            className={cn(
-                                "text-xs font-semibold",
-                                tab.method === "GET" && "text-green-500",
-                                tab.method === "POST" && "text-yellow-500",
-                                tab.method === "PUT" && "text-blue-500",
-                                tab.method === "DELETE" && "text-red-500"
-                            )}
-                        >
-                            {tab.method}
-                        </span>
-                        <span className="text-xs ml-2">{tab.name}</span>
+                        {/* Индикатор изменений */}
+                        {tab.isDirty && (
+                            <span className="ml-2 h-2 w-2 rounded-full bg-blue-500"></span>
+                        )}
+
+                        <EditableTab
+                            initialName={tab.name}
+                            onNameChange={(newName) =>
+                                updateActiveTab({ name: newName })
+                            }
+                        />
                         <button
                             onClick={(e) => {
                                 e.stopPropagation(); // Предотвращаем клик по основной кнопке
