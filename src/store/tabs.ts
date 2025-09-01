@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { KeyValuePair } from "@/components/key-value-editor";
 import { addHistoryItem } from "@/lib/history-db";
+import { createClient } from "@/lib/supabase/client";
 
 // Описываем тип одной вкладки
 export interface RequestTab {
@@ -205,12 +206,19 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                     .slice(0, 25)}...`;
             }
 
-            // 2. Сохраняем в историю с правильным (возможно, новым) именем
-            await addHistoryItem({
-                url: activeTab.url,
-                method: activeTab.method,
-                name: finalTabName,
-            });
+            // 2. Сохраняем в историю с правильным (возможно, новым) именем, только если пользователь авторизован
+            const supabase = createClient();
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+
+            if (user) {
+                await addHistoryItem({
+                    url: activeTab.url,
+                    method: activeTab.method,
+                    name: finalTabName,
+                });
+            }
 
             // 3. Обновляем вкладку, включая ответ и новое имя
             let formattedBody = data.body;

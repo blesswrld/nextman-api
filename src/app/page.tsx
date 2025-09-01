@@ -21,7 +21,7 @@ import { useTabsStore } from "@/store/tabs";
 import { cn } from "@/lib/utils";
 import { X, Plus } from "lucide-react";
 import { HistorySidebar } from "@/components/history-sidebar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ResponseHeaders } from "@/components/response-headers";
 import { EditableTab } from "@/components/editable-tab";
 import { AuthButton } from "@/components/auth-button";
@@ -29,6 +29,8 @@ import { CollectionsSidebar } from "@/components/collections-sidebar";
 import { SaveRequestDialog } from "@/components/save-request-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { useHotkeys } from "@/hooks/use-hotkeys"; // <-- Импорт
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -43,6 +45,8 @@ export default function HomePage() {
         init, // Действие для инициализации
     } = useTabsStore();
 
+    const [user, setUser] = useState<User | null>(null);
+
     // Добавляем горячую клавишу
     useHotkeys([["ctrl+enter", () => sendRequest()]]);
     useHotkeys([["cmd+enter", () => sendRequest()]]); // Для Mac
@@ -50,6 +54,28 @@ export default function HomePage() {
     // Инициализируем стор один раз при монтировании компонента
     useEffect(() => {
         if (init) init();
+
+        const supabase = createClient();
+        const getUserAndSetupListener = async () => {
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+            setUser(user);
+
+            const { data: authListener } = supabase.auth.onAuthStateChange(
+                (event, session) => {
+                    setUser(session?.user ?? null);
+                }
+            );
+
+            return () => {
+                authListener.subscription.unsubscribe();
+            };
+        };
+        const unsubscribePromise = getUserAndSetupListener();
+        return () => {
+            unsubscribePromise.then((unsubscribe) => unsubscribe());
+        };
     }, [init]);
 
     // --- Находим активную вкладку по её ID ---
@@ -73,7 +99,7 @@ export default function HomePage() {
                 <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                     <h1 className="text-xl font-bold">Nextman API</h1>
                     <div className="flex items-center gap-2">
-                        <HistorySidebar />
+                        <HistorySidebar user={user} />
                         <AuthButton />
                     </div>
                 </header>
@@ -92,7 +118,7 @@ export default function HomePage() {
             <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                 <h1 className="text-xl font-bold">Nextman API</h1>
                 <div className="flex items-center gap-2">
-                    <HistorySidebar />
+                    <HistorySidebar user={user} />
                     <AuthButton />
                 </div>
             </header>
