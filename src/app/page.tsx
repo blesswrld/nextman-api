@@ -18,6 +18,8 @@ import {
     ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CodeEditor } from "@/components/editor";
+import { KeyValueEditor, KeyValuePair } from "@/components/key-value-editor";
 
 export default function HomePage() {
     const [url, setUrl] = useState(
@@ -26,19 +28,63 @@ export default function HomePage() {
     const [method, setMethod] = useState("GET");
     const [response, setResponse] = useState("");
     const [loading, setLoading] = useState(false);
+    const [body, setBody] = useState('{\n  "key": "value"\n}');
+    const [queryParams, setQueryParams] = useState<KeyValuePair[]>([
+        { id: crypto.randomUUID(), key: "", value: "" },
+    ]);
+    const [headers, setHeaders] = useState<KeyValuePair[]>([
+        { id: crypto.randomUUID(), key: "", value: "" },
+    ]);
 
     const handleSendRequest = async () => {
         setLoading(true);
         setResponse("");
         try {
+            // Проверяем, что тело запроса - валидный JSON, если метод это подразумевает
+            // @ts-ignore
+            let parsedBody: any = null;
+            if (
+                ["POST", "PUT", "PATCH"].includes(method) &&
+                body.trim() !== ""
+            ) {
+                try {
+                    parsedBody = JSON.parse(body);
+                } catch (e) {
+                    throw new Error("Invalid JSON in request body");
+                }
+            }
+
+            const finalUrl = buildUrlWithParams();
+            const finalHeaders = buildHeadersObject();
+
             const res = await fetch("/api/proxy", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url, method }),
+                body: JSON.stringify({
+                    url: finalUrl,
+                    method,
+                    headers: finalHeaders,
+                    body: parsedBody ? JSON.stringify(parsedBody) : undefined,
+                }),
             });
+
             if (!res.ok)
-                throw new Error(`Proxy request failed: ${res.statusText}`);
+                throw new Error(
+                    `Proxy request failed: ${res.status} ${res.statusText}`
+                );
+
             const data = await res.json();
+
+            // Пытаемся красиво отформатировать тело ответа
+            let formattedBody = data.body;
+            try {
+                const parsedJson = JSON.parse(data.body);
+                formattedBody = JSON.stringify(parsedJson, null, 2);
+            } catch (e) {
+                // Если не JSON, оставляем как есть
+            }
+            data.body = formattedBody;
+
             setResponse(JSON.stringify(data, null, 2));
         } catch (error) {
             const errorResponse =
@@ -51,10 +97,37 @@ export default function HomePage() {
         }
     };
 
+    // Функция для сборки URL с параметрами:
+    const buildUrlWithParams = () => {
+        const activeParams = queryParams.filter((p) => p.key);
+        if (activeParams.length === 0) {
+            return url;
+        }
+        const params = new URLSearchParams();
+        activeParams.forEach((p) => params.append(p.key, p.value));
+
+        // Проверяем, есть ли в URL уже параметры
+        const [baseUrl, existingParams] = url.split("?");
+        if (existingParams) {
+            return `${url}&${params.toString()}`;
+        }
+        return `${baseUrl}?${params.toString()}`;
+    };
+
+    // Функция для преобразования заголовков в объект:
+    const buildHeadersObject = () => {
+        const activeHeaders = headers.filter((h) => h.key);
+        const headersObj: Record<string, string> = {};
+        activeHeaders.forEach((h) => {
+            headersObj[h.key] = h.value;
+        });
+        return headersObj;
+    };
+
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
             <header className="p-4 border-b flex-shrink-0">
-                <h1 className="text-xl font-bold">My API Client</h1>
+                <h1 className="text-xl font-bold">Nextman API</h1>
             </header>
 
             <main className="flex-grow p-4">
@@ -103,7 +176,10 @@ export default function HomePage() {
                                 </Button>
                             </div>
                             {/* Табы для параметров, заголовков, тела запроса */}
-                            <Tabs defaultValue="body" className="flex-grow">
+                            <Tabs
+                                defaultValue="body"
+                                className="flex-grow flex flex-col"
+                            >
                                 <TabsList>
                                     <TabsTrigger value="params">
                                         Query Params
@@ -114,13 +190,29 @@ export default function HomePage() {
                                     <TabsTrigger value="body">Body</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="params" className="mt-4">
-                                    Тут будут Query Params
+                                    <KeyValueEditor
+                                        pairs={queryParams}
+                                        setPairs={setQueryParams}
+                                        placeholderKey="Parameter"
+                                    />
                                 </TabsContent>
                                 <TabsContent value="headers" className="mt-4">
-                                    Тут будут Headers
+                                    <KeyValueEditor
+                                        pairs={headers}
+                                        setPairs={setHeaders}
+                                        placeholderKey="Header"
+                                    />
                                 </TabsContent>
-                                <TabsContent value="body" className="mt-4">
-                                    Тут будет редактор для тела запроса
+                                <TabsContent
+                                    value="body"
+                                    className="mt-4 flex-grow"
+                                >
+                                    <CodeEditor
+                                        value={body}
+                                        onChange={(value) =>
+                                            setBody(value || "")
+                                        }
+                                    />
                                 </TabsContent>
                             </Tabs>
                         </div>
@@ -134,12 +226,14 @@ export default function HomePage() {
                             <h2 className="text-lg font-semibold mb-2">
                                 Response
                             </h2>
-                            <Textarea
-                                readOnly
-                                value={response}
-                                placeholder="Response data will appear here..."
-                                className="w-full flex-grow font-mono text-sm resize-none"
-                            />
+                            <div className="flex-grow">
+                                {/* Устанавливаем `key`, чтобы редактор перерендерился при новом ответе */}
+                                <CodeEditor
+                                    value={response}
+                                    readOnly={true}
+                                    key={response}
+                                />
+                            </div>
                         </div>
                     </ResizablePanel>
                 </ResizablePanelGroup>
