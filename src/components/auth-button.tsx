@@ -13,6 +13,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { User } from "@supabase/supabase-js";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function AuthButton() {
     const supabase = createClient();
@@ -56,7 +57,8 @@ export function AuthButton() {
     };
 
     if (loading) {
-        return <div className="h-10 w-24 rounded-md bg-muted animate-pulse" />;
+        // Используем скелетон, имитирующий кнопку
+        return <Skeleton className="h-10 w-24 rounded-md" />;
     }
 
     if (user) {

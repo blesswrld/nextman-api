@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useCollectionsStore } from "@/store/collections";
 import { useTabsStore } from "@/store/tabs";
+import { DialogDescription } from "@/components/ui/dialog";
 
 export function SaveRequestDialog() {
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -84,6 +85,9 @@ export function SaveRequestDialog() {
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Save Request</DialogTitle>
+                    <DialogDescription>
+                        Save the current request to a collection for later use.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
