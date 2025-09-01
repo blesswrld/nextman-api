@@ -1,0 +1,70 @@
+{
+    "header": {
+        "title": "Nextman API"
+    },
+    "auth": {
+        "login_button": "Войти через GitHub",
+        "logout_button": "Выйти"
+    },
+    "tabs": {
+        "untitled_request": "Новый запрос"
+    },
+    "main": {
+        "create_request_button": "Создать новый запрос",
+        "save_button": "Сохранить",
+        "send_button": "Отправить",
+        "sending_button": "Отправка...",
+        "query_params_tab": "Параметры",
+        "headers_tab": "Заголовки",
+        "body_tab": "Тело",
+        "response_title": "Ответ",
+        "status_label": "Статус",
+        "time_label": "Время",
+        "response_body_tab": "Тело",
+        "response_headers_tab": "Заголовки",
+        "response_waiting": "Ожидание ответа...",
+        "response_placeholder": "Отправьте запрос, чтобы увидеть ответ"
+    },
+    "collections": {
+        "title": "Коллекции",
+        "loading": "Загрузка...",
+        "empty_title": "Нет коллекций",
+        "empty_description": "Начните с создания новой коллекции.",
+        "login_prompt_title": "Войдите, чтобы видеть коллекции",
+        "login_prompt_description": "Ваши сохраненные запросы появятся здесь после входа.",
+        "create_dialog_title": "Создать новую коллекцию",
+        "create_dialog_description": "Введите имя для новой коллекции, чтобы организовать ваши запросы.",
+        "create_button": "Создать",
+        "name_label": "Имя",
+        "delete_collection_title": "Вы уверены?",
+        "delete_collection_description": "Это навсегда удалит коллекцию \"{{name}}\" и все запросы внутри нее.",
+        "delete_request_description": "Это навсегда удалит запрос \"{{name}}\".",
+        "empty_collection": "В этой коллекции нет запросов."
+    },
+    "history": {
+        "title": "История запросов",
+        "description": "Просматривайте и перезапускайте последние 100 запросов.",
+        "clear_all_button": "Очистить все",
+        "loading": "Загрузка...",
+        "empty_title": "История пуста",
+        "empty_description": "Ваши недавние запросы появятся здесь.",
+        "login_prompt_title": "Войдите, чтобы видеть историю",
+        "login_prompt_description": "История запросов доступна только для авторизованных пользователей."
+    },
+    "save_dialog": {
+        "title": "Сохранить запрос",
+        "description": "Сохраните текущий запрос в коллекцию для дальнейшего использования.",
+        "name_label": "Имя",
+        "collection_label": "Коллекция",
+        "select_collection_placeholder": "Выберите коллекцию",
+        "save_button": "Сохранить"
+    },
+    "common": {
+        "cancel": "Отмена",
+        "delete": "Удалить"
+    },
+    "language_switcher": {
+        "english": "Английский",
+        "russian": "Русский"
+    }
+}

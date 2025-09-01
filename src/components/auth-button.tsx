@@ -15,11 +15,14 @@ import {
 import type { User } from "@supabase/supabase-js";
 import { Skeleton } from "@/components/ui/skeleton";
 import { clearHistory } from "@/lib/history-db";
+import { useTranslation } from "react-i18next";
 
 export function AuthButton() {
     const supabase = createClient();
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const { t } = useTranslation();
 
     useEffect(() => {
         const getUser = async () => {
@@ -98,12 +101,12 @@ export function AuthButton() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
-                        Log out
+                        {t("auth.logout_button")}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         );
     }
 
-    return <Button onClick={handleLogin}>Login with GitHub</Button>;
+    return <Button onClick={handleLogin}>{t("auth.login_button")}</Button>;
 }

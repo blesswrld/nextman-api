@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { KeyValuePair } from "@/components/key-value-editor";
 import { addHistoryItem } from "@/lib/history-db";
 import { createClient } from "@/lib/supabase/client";
+import i18n from "../../i18n"; // <-- ИМПОРТ
 
 // Описываем тип одной вкладки
 export interface RequestTab {
@@ -42,7 +43,8 @@ export interface ResponseData {
 // Функция для создания новой пустой вкладки
 const createNewTab = (data?: Partial<RequestTab>): RequestTab => ({
     id: crypto.randomUUID(),
-    name: data?.name || "Untitled Request",
+    // Используем `i18n.t` для получения перевода
+    name: data?.name || i18n.t("tabs.untitled_request"),
     method: data?.method || "GET",
     url: data?.url || "https://jsonplaceholder.typicode.com/todos/1",
     queryParams: data?.queryParams || [

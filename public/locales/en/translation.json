@@ -1,0 +1,70 @@
+{
+    "header": {
+        "title": "Nextman API"
+    },
+    "auth": {
+        "login_button": "Login with GitHub",
+        "logout_button": "Log out"
+    },
+    "tabs": {
+        "untitled_request": "Untitled Request"
+    },
+    "main": {
+        "create_request_button": "Create a new request",
+        "save_button": "Save",
+        "send_button": "Send",
+        "sending_button": "Sending...",
+        "query_params_tab": "Query Params",
+        "headers_tab": "Headers",
+        "body_tab": "Body",
+        "response_title": "Response",
+        "status_label": "Status",
+        "time_label": "Time",
+        "response_body_tab": "Body",
+        "response_headers_tab": "Headers",
+        "response_waiting": "Waiting for response...",
+        "response_placeholder": "Send a request to see the response here"
+    },
+    "collections": {
+        "title": "Collections",
+        "loading": "Loading...",
+        "empty_title": "No Collections",
+        "empty_description": "Get started by creating a new collection.",
+        "login_prompt_title": "Login to view Collections",
+        "login_prompt_description": "Your saved requests will appear here once you log in.",
+        "create_dialog_title": "Create New Collection",
+        "create_dialog_description": "Enter a name for your new collection to organize your requests.",
+        "create_button": "Create",
+        "name_label": "Name",
+        "delete_collection_title": "Are you sure?",
+        "delete_collection_description": "This will permanently delete the collection \"{{name}}\" and all requests inside it.",
+        "delete_request_description": "This will permanently delete the request \"{{name}}\".",
+        "empty_collection": "No requests in this collection."
+    },
+    "history": {
+        "title": "Request History",
+        "description": "View and re-run your past 100 requests.",
+        "clear_all_button": "Clear All",
+        "loading": "Loading...",
+        "empty_title": "No History Yet",
+        "empty_description": "Your recent requests will appear here.",
+        "login_prompt_title": "Login to see History",
+        "login_prompt_description": "Request history is only available for logged in users."
+    },
+    "save_dialog": {
+        "title": "Save Request",
+        "description": "Save the current request to a collection for later use.",
+        "name_label": "Name",
+        "collection_label": "Collection",
+        "select_collection_placeholder": "Select a collection",
+        "save_button": "Save"
+    },
+    "common": {
+        "cancel": "Cancel",
+        "delete": "Delete"
+    },
+    "language_switcher": {
+        "english": "English",
+        "russian": "Russian"
+    }
+}
