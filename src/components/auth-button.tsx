@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { User } from "@supabase/supabase-js";
 import { Skeleton } from "@/components/ui/skeleton";
+import { clearHistory } from "@/lib/history-db";
 
 export function AuthButton() {
     const supabase = createClient();
@@ -52,7 +53,11 @@ export function AuthButton() {
     };
 
     const handleLogout = async () => {
+        // Сначала вызываем signOut
         await supabase.auth.signOut();
+        // Затем полностью очищаем локальную историю
+        await clearHistory();
+        // И только потом обновляем локальное состояние UI
         setUser(null);
     };
 
