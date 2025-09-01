@@ -25,6 +25,8 @@ import { useEffect } from "react";
 import { ResponseHeaders } from "@/components/response-headers";
 import { EditableTab } from "@/components/editable-tab";
 import { AuthButton } from "@/components/auth-button";
+import { CollectionsSidebar } from "@/components/collections-sidebar";
+import { SaveRequestDialog } from "@/components/save-request-dialog";
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -103,8 +105,20 @@ export default function HomePage() {
                     >
                         {/* Индикатор изменений */}
                         {tab.isDirty && (
-                            <span className="ml-2 h-2 w-2 rounded-full bg-blue-500"></span>
+                            <span className="mr-2 h-2 w-2 rounded-full bg-blue-500"></span>
                         )}
+
+                        <span
+                            className={cn(
+                                "text-xs font-semibold",
+                                tab.method === "GET" && "text-green-500",
+                                tab.method === "POST" && "text-yellow-500",
+                                tab.method === "PUT" && "text-blue-500",
+                                tab.method === "DELETE" && "text-red-500"
+                            )}
+                        >
+                            {tab.method}
+                        </span>
 
                         <EditableTab
                             initialName={tab.name}
@@ -133,180 +147,228 @@ export default function HomePage() {
                 </Button>
             </div>
 
-            <main className="flex-grow p-4">
-                <ResizablePanelGroup
-                    direction="vertical"
-                    className="h-full border rounded-lg"
-                >
-                    {/* Верхняя панель: Запрос */}
-                    <ResizablePanel defaultSize={40} minSize={20}>
-                        <div className="p-4 h-full flex flex-col gap-4">
-                            {/* Строка URL */}
-                            <div className="flex items-center gap-2">
-                                <Select
-                                    value={activeTab.method}
-                                    onValueChange={handleMethodChange}
-                                >
-                                    <SelectTrigger className="w-[120px]">
-                                        <SelectValue placeholder="Method" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="GET">GET</SelectItem>
-                                        <SelectItem value="POST">
-                                            POST
-                                        </SelectItem>
-                                        <SelectItem value="PUT">PUT</SelectItem>
-                                        <SelectItem value="PATCH">
-                                            PATCH
-                                        </SelectItem>
-                                        <SelectItem value="DELETE">
-                                            DELETE
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <Input
-                                    type="text"
-                                    value={activeTab.url}
-                                    onChange={(e) =>
-                                        handleUrlChange(e.target.value)
-                                    }
-                                    placeholder="https://api.example.com"
-                                    className="flex-grow"
-                                />
-                                <Button
-                                    onClick={sendRequest} // <-- Используем действие из стора
-                                    disabled={activeTab.loading}
-                                >
-                                    {activeTab.loading ? "Sending..." : "Send"}
-                                </Button>
-                            </div>
-                            {/* Табы для параметров, заголовков, тела запроса */}
-                            <Tabs
-                                defaultValue="params"
-                                className="flex-grow flex flex-col"
-                            >
-                                <TabsList>
-                                    <TabsTrigger value="params">
-                                        Query Params
-                                    </TabsTrigger>
-                                    <TabsTrigger value="headers">
-                                        Headers
-                                    </TabsTrigger>
-                                    <TabsTrigger value="body">Body</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="params" className="mt-4">
-                                    <KeyValueEditor
-                                        pairs={activeTab.queryParams}
-                                        setPairs={handleQueryParamsChange}
-                                        placeholderKey="Parameter"
-                                    />
-                                </TabsContent>
-                                <TabsContent value="headers" className="mt-4">
-                                    <KeyValueEditor
-                                        pairs={activeTab.headers}
-                                        setPairs={handleHeadersChange}
-                                        placeholderKey="Header"
-                                    />
-                                </TabsContent>
-                                <TabsContent
-                                    value="body"
-                                    className="mt-4 flex-grow"
-                                >
-                                    <CodeEditor
-                                        value={activeTab.body}
-                                        onChange={handleBodyChange}
-                                    />
-                                </TabsContent>
-                            </Tabs>
-                        </div>
-                    </ResizablePanel>
+            {/* Главная структура с сайдбаром коллекций и основной рабочей областью */}
+            <ResizablePanelGroup direction="horizontal" className="flex-grow">
+                {/* Левая панель: Коллекции */}
+                <ResizablePanel defaultSize={20} minSize={15}>
+                    <CollectionsSidebar />
+                </ResizablePanel>
 
-                    <ResizableHandle withHandle />
+                <ResizableHandle withHandle />
 
-                    {/* Нижняя панель: Ответ */}
-                    <ResizablePanel defaultSize={60} minSize={20}>
-                        <div className="p-4 h-full flex flex-col">
-                            <div className="flex items-center gap-4 mb-2">
-                                <h2 className="text-lg font-semibold">
-                                    Response
-                                </h2>
-                                {activeTab.response && (
-                                    <div className="flex items-center gap-4 text-sm">
-                                        <span>
-                                            Status:{" "}
-                                            <span
-                                                className={cn(
-                                                    "font-semibold",
-                                                    activeTab.response.status >=
-                                                        200 &&
-                                                        activeTab.response
-                                                            .status < 300
-                                                        ? "text-green-500"
-                                                        : "text-red-500"
-                                                )}
-                                            >
-                                                {activeTab.response.status}{" "}
-                                                {activeTab.response.statusText}
-                                            </span>
-                                        </span>
-                                        <span>
-                                            Time:{" "}
-                                            <span className="font-semibold text-blue-500">
-                                                {activeTab.response.time} ms
-                                            </span>
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {activeTab.response ? (
-                                <Tabs
-                                    defaultValue="body"
-                                    className="flex-grow flex flex-col"
-                                >
-                                    <TabsList>
-                                        <TabsTrigger value="body">
-                                            Body
-                                        </TabsTrigger>
-                                        <TabsTrigger value="headers">
-                                            Headers
-                                        </TabsTrigger>
-                                    </TabsList>
-                                    <TabsContent
-                                        value="body"
-                                        className="mt-4 flex-grow"
-                                    >
-                                        <CodeEditor
-                                            value={activeTab.response.body}
-                                            readOnly={true}
-                                            key={
-                                                activeTab.id +
-                                                activeTab.response.body
+                {/* Правая панель: Основной контент (запрос/ответ) */}
+                <ResizablePanel defaultSize={80}>
+                    <main className="h-full p-4">
+                        <ResizablePanelGroup
+                            direction="vertical"
+                            className="h-full"
+                        >
+                            {/* Верхняя панель: Запрос */}
+                            <ResizablePanel defaultSize={40} minSize={20}>
+                                <div className="p-4 h-full flex flex-col gap-4">
+                                    {/* Строка URL */}
+                                    <div className="flex items-center gap-2">
+                                        <Select
+                                            value={activeTab.method}
+                                            onValueChange={handleMethodChange}
+                                        >
+                                            <SelectTrigger className="w-[120px]">
+                                                <SelectValue placeholder="Method" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="GET">
+                                                    GET
+                                                </SelectItem>
+                                                <SelectItem value="POST">
+                                                    POST
+                                                </SelectItem>
+                                                <SelectItem value="PUT">
+                                                    PUT
+                                                </SelectItem>
+                                                <SelectItem value="PATCH">
+                                                    PATCH
+                                                </SelectItem>
+                                                <SelectItem value="DELETE">
+                                                    DELETE
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <Input
+                                            type="text"
+                                            value={activeTab.url}
+                                            onChange={(e) =>
+                                                handleUrlChange(e.target.value)
                                             }
+                                            placeholder="https://api.example.com"
+                                            className="flex-grow"
                                         />
-                                    </TabsContent>
-                                    <TabsContent
-                                        value="headers"
-                                        className="mt-4 overflow-y-auto"
+                                        {/* Добавляем кнопку Save рядом с Send */}
+                                        <SaveRequestDialog />
+                                        <Button
+                                            onClick={sendRequest}
+                                            disabled={activeTab.loading}
+                                        >
+                                            {activeTab.loading
+                                                ? "Sending..."
+                                                : "Send"}
+                                        </Button>
+                                    </div>
+                                    {/* Табы для параметров, заголовков, тела запроса */}
+                                    <Tabs
+                                        defaultValue="params"
+                                        className="flex-grow flex flex-col"
                                     >
-                                        <ResponseHeaders
-                                            headers={activeTab.response.headers}
-                                        />
-                                    </TabsContent>
-                                </Tabs>
-                            ) : (
-                                <div className="flex-grow flex items-center justify-center border rounded-md bg-muted/20">
-                                    <p className="text-muted-foreground">
-                                        {activeTab.loading
-                                            ? "Waiting for response..."
-                                            : "Send a request to see the response here"}
-                                    </p>
+                                        <TabsList>
+                                            <TabsTrigger value="params">
+                                                Query Params
+                                            </TabsTrigger>
+                                            <TabsTrigger value="headers">
+                                                Headers
+                                            </TabsTrigger>
+                                            <TabsTrigger value="body">
+                                                Body
+                                            </TabsTrigger>
+                                        </TabsList>
+                                        <TabsContent
+                                            value="params"
+                                            className="mt-4"
+                                        >
+                                            <KeyValueEditor
+                                                pairs={activeTab.queryParams}
+                                                setPairs={
+                                                    handleQueryParamsChange
+                                                }
+                                                placeholderKey="Parameter"
+                                            />
+                                        </TabsContent>
+                                        <TabsContent
+                                            value="headers"
+                                            className="mt-4"
+                                        >
+                                            <KeyValueEditor
+                                                pairs={activeTab.headers}
+                                                setPairs={handleHeadersChange}
+                                                placeholderKey="Header"
+                                            />
+                                        </TabsContent>
+                                        <TabsContent
+                                            value="body"
+                                            className="mt-4 flex-grow"
+                                        >
+                                            <CodeEditor
+                                                value={activeTab.body}
+                                                onChange={handleBodyChange}
+                                            />
+                                        </TabsContent>
+                                    </Tabs>
                                 </div>
-                            )}
-                        </div>
-                    </ResizablePanel>
-                </ResizablePanelGroup>
-            </main>
+                            </ResizablePanel>
+
+                            <ResizableHandle withHandle />
+
+                            {/* Нижняя панель: Ответ */}
+                            <ResizablePanel defaultSize={60} minSize={20}>
+                                <div className="p-4 h-full flex flex-col">
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <h2 className="text-lg font-semibold">
+                                            Response
+                                        </h2>
+                                        {activeTab.response && (
+                                            <div className="flex items-center gap-4 text-sm">
+                                                <span>
+                                                    Status:{" "}
+                                                    <span
+                                                        className={cn(
+                                                            "font-semibold",
+                                                            activeTab.response
+                                                                .status >=
+                                                                200 &&
+                                                                activeTab
+                                                                    .response
+                                                                    .status <
+                                                                    300
+                                                                ? "text-green-500"
+                                                                : "text-red-500"
+                                                        )}
+                                                    >
+                                                        {
+                                                            activeTab.response
+                                                                .status
+                                                        }{" "}
+                                                        {
+                                                            activeTab.response
+                                                                .statusText
+                                                        }
+                                                    </span>
+                                                </span>
+                                                <span>
+                                                    Time:{" "}
+                                                    <span className="font-semibold text-blue-500">
+                                                        {
+                                                            activeTab.response
+                                                                .time
+                                                        }{" "}
+                                                        ms
+                                                    </span>
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {activeTab.response ? (
+                                        <Tabs
+                                            defaultValue="body"
+                                            className="flex-grow flex flex-col"
+                                        >
+                                            <TabsList>
+                                                <TabsTrigger value="body">
+                                                    Body
+                                                </TabsTrigger>
+                                                <TabsTrigger value="headers">
+                                                    Headers
+                                                </TabsTrigger>
+                                            </TabsList>
+                                            <TabsContent
+                                                value="body"
+                                                className="mt-4 flex-grow"
+                                            >
+                                                <CodeEditor
+                                                    value={
+                                                        activeTab.response.body
+                                                    }
+                                                    readOnly={true}
+                                                    key={
+                                                        activeTab.id +
+                                                        activeTab.response.body
+                                                    }
+                                                />
+                                            </TabsContent>
+                                            <TabsContent
+                                                value="headers"
+                                                className="mt-4 overflow-y-auto"
+                                            >
+                                                <ResponseHeaders
+                                                    headers={
+                                                        activeTab.response
+                                                            .headers
+                                                    }
+                                                />
+                                            </TabsContent>
+                                        </Tabs>
+                                    ) : (
+                                        <div className="flex-grow flex items-center justify-center border rounded-md bg-muted/20">
+                                            <p className="text-muted-foreground">
+                                                {activeTab.loading
+                                                    ? "Waiting for response..."
+                                                    : "Send a request to see the response here"}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </ResizablePanel>
+                        </ResizablePanelGroup>
+                    </main>
+                </ResizablePanel>
+            </ResizablePanelGroup>
         </div>
     );
 }
