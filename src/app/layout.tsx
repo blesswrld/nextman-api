@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-    title: "Nextman API",
-    description: "A modern, web-based API client built with Next.js", // <--- Обновлено
+    title: "Nextman API, A modern web-based API client",
 };
 
 export default function RootLayout({

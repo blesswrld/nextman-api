@@ -27,6 +27,8 @@ import { EditableTab } from "@/components/editable-tab";
 import { AuthButton } from "@/components/auth-button";
 import { CollectionsSidebar } from "@/components/collections-sidebar";
 import { SaveRequestDialog } from "@/components/save-request-dialog";
+import { motion, AnimatePresence } from "framer-motion";
+import { useHotkeys } from "@/hooks/use-hotkeys"; // <-- Импорт
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -40,6 +42,10 @@ export default function HomePage() {
         sendRequest, // Главное действие для отправки запроса
         init, // Действие для инициализации
     } = useTabsStore();
+
+    // Добавляем горячую клавишу
+    useHotkeys([["ctrl+enter", () => sendRequest()]]);
+    useHotkeys([["cmd+enter", () => sendRequest()]]); // Для Mac
 
     // Инициализируем стор один раз при монтировании компонента
     useEffect(() => {
@@ -94,48 +100,70 @@ export default function HomePage() {
             {/* Панель с вкладками запросов */}
             <div className="flex items-center border-b bg-muted/40 p-1 gap-1 overflow-x-auto">
                 {tabs.map((tab) => (
-                    <Button
+                    <div
                         key={tab.id}
-                        variant="ghost"
-                        onClick={() => setActiveTab(tab.id)}
+                        // Оборачиваем все в div и стилизуем его, чтобы он был похож на кнопку вкладки
                         className={cn(
-                            "h-8 px-2 relative flex-shrink-0", // flex-shrink-0 важен для скролла
-                            activeTabId === tab.id && "bg-background shadow-sm"
+                            "h-8 px-2 relative flex-shrink-0 flex items-center rounded-md group",
+                            activeTabId === tab.id
+                                ? "bg-background shadow-sm"
+                                : "hover:bg-accent hover:text-accent-foreground"
                         )}
                     >
-                        {/* Индикатор изменений */}
-                        {tab.isDirty && (
-                            <span className="mr-2 h-2 w-2 rounded-full bg-blue-500"></span>
-                        )}
-
-                        <span
-                            className={cn(
-                                "text-xs font-semibold",
-                                tab.method === "GET" && "text-green-500",
-                                tab.method === "POST" && "text-yellow-500",
-                                tab.method === "PUT" && "text-blue-500",
-                                tab.method === "DELETE" && "text-red-500"
-                            )}
+                        <div
+                            onClick={() => setActiveTab(tab.id)}
+                            className="flex items-center cursor-pointer flex-grow h-full pr-2"
                         >
-                            {tab.method}
-                        </span>
+                            {/* Индикатор изменений */}
+                            <AnimatePresence>
+                                {tab.isDirty && (
+                                    <motion.span
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="mr-2 h-2 w-2 rounded-full bg-blue-500 flex-shrink-0"
+                                    />
+                                )}
+                            </AnimatePresence>
 
-                        <EditableTab
-                            initialName={tab.name}
-                            onNameChange={(newName) =>
-                                updateActiveTab({ name: newName })
-                            }
-                        />
-                        <button
+                            <span
+                                className={cn(
+                                    "text-xs font-semibold",
+                                    tab.method === "GET" && "text-green-500",
+                                    tab.method === "POST" && "text-yellow-500",
+                                    tab.method === "PUT" && "text-blue-500",
+                                    tab.method === "DELETE" && "text-red-500"
+                                )}
+                            >
+                                {tab.method}
+                            </span>
+
+                            <EditableTab
+                                initialName={tab.name}
+                                onNameChange={(newName) =>
+                                    updateActiveTab({ name: newName })
+                                }
+                            />
+                        </div>
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={(e) => {
-                                e.stopPropagation(); // Предотвращаем клик по основной кнопке
+                                e.stopPropagation(); // Предотвращаем любые другие клики
                                 closeTab(tab.id);
                             }}
-                            className="ml-2 p-0.5 rounded hover:bg-destructive/20"
+                            className={cn(
+                                "h-5 w-5 rounded-full",
+                                activeTabId === tab.id
+                                    ? "opacity-100"
+                                    : "opacity-0 group-hover:opacity-100"
+                            )}
                         >
                             <X className="h-3 w-3" />
-                        </button>
-                    </Button>
+                        </Button>
+                    </div>
                 ))}
                 <Button
                     variant="ghost"
@@ -273,6 +301,7 @@ export default function HomePage() {
                                         <h2 className="text-lg font-semibold">
                                             Response
                                         </h2>
+                                        {/* Этот блок не анимируем, т.к. он должен обновляться мгновенно */}
                                         {activeTab.response && (
                                             <div className="flex items-center gap-4 text-sm">
                                                 <span>
@@ -314,55 +343,80 @@ export default function HomePage() {
                                             </div>
                                         )}
                                     </div>
-                                    {activeTab.response ? (
-                                        <Tabs
-                                            defaultValue="body"
-                                            className="flex-grow flex flex-col"
-                                        >
-                                            <TabsList>
-                                                <TabsTrigger value="body">
-                                                    Body
-                                                </TabsTrigger>
-                                                <TabsTrigger value="headers">
-                                                    Headers
-                                                </TabsTrigger>
-                                            </TabsList>
-                                            <TabsContent
-                                                value="body"
-                                                className="mt-4 flex-grow"
+
+                                    {/* Анимируем переключение между состоянием с ответом и заглушкой */}
+                                    <AnimatePresence mode="wait">
+                                        {activeTab.response ? (
+                                            <motion.div
+                                                key="response-data"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="flex-grow flex flex-col min-h-0" // min-h-0 важен для правильной работы flex
                                             >
-                                                <CodeEditor
-                                                    value={
-                                                        activeTab.response.body
-                                                    }
-                                                    readOnly={true}
-                                                    key={
-                                                        activeTab.id +
-                                                        activeTab.response.body
-                                                    }
-                                                />
-                                            </TabsContent>
-                                            <TabsContent
-                                                value="headers"
-                                                className="mt-4 overflow-y-auto"
+                                                <Tabs
+                                                    defaultValue="body"
+                                                    className="flex-grow flex flex-col"
+                                                >
+                                                    <TabsList>
+                                                        <TabsTrigger value="body">
+                                                            Body
+                                                        </TabsTrigger>
+                                                        <TabsTrigger value="headers">
+                                                            Headers
+                                                        </TabsTrigger>
+                                                    </TabsList>
+                                                    <TabsContent
+                                                        value="body"
+                                                        className="mt-4 flex-grow"
+                                                    >
+                                                        <CodeEditor
+                                                            value={
+                                                                activeTab
+                                                                    .response
+                                                                    .body
+                                                            }
+                                                            readOnly={true}
+                                                            key={
+                                                                activeTab.id +
+                                                                activeTab
+                                                                    .response
+                                                                    .body
+                                                            }
+                                                        />
+                                                    </TabsContent>
+                                                    <TabsContent
+                                                        value="headers"
+                                                        className="mt-4 overflow-y-auto"
+                                                    >
+                                                        <ResponseHeaders
+                                                            headers={
+                                                                activeTab
+                                                                    .response
+                                                                    .headers
+                                                            }
+                                                        />
+                                                    </TabsContent>
+                                                </Tabs>
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                key="response-placeholder"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="flex-grow flex items-center justify-center border rounded-md bg-muted/20"
                                             >
-                                                <ResponseHeaders
-                                                    headers={
-                                                        activeTab.response
-                                                            .headers
-                                                    }
-                                                />
-                                            </TabsContent>
-                                        </Tabs>
-                                    ) : (
-                                        <div className="flex-grow flex items-center justify-center border rounded-md bg-muted/20">
-                                            <p className="text-muted-foreground">
-                                                {activeTab.loading
-                                                    ? "Waiting for response..."
-                                                    : "Send a request to see the response here"}
-                                            </p>
-                                        </div>
-                                    )}
+                                                <p className="text-muted-foreground">
+                                                    {activeTab.loading
+                                                        ? "Waiting for response..."
+                                                        : "Send a request to see the response here"}
+                                                </p>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </ResizablePanel>
                         </ResizablePanelGroup>
