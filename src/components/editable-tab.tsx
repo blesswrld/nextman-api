@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { useRef, useEffect, useState } from "react";
 
 interface EditableTabProps {
     initialName: string;
@@ -22,10 +22,12 @@ export function EditableTab({ initialName, onNameChange }: EditableTabProps) {
 
     const handleBlur = () => {
         setIsEditing(false);
-        if (name.trim() === "") {
-            setName(initialName); // Возвращаем старое имя, если ввели пустое
-        } else {
+        // Сохраняем, только если имя не пустое
+        if (name.trim()) {
             onNameChange(name);
+        } else {
+            // Если оставили пустым, возвращаем старое значение
+            setName(initialName);
         }
     };
 
@@ -34,7 +36,7 @@ export function EditableTab({ initialName, onNameChange }: EditableTabProps) {
             handleBlur();
         }
         if (e.key === "Escape") {
-            setName(initialName);
+            setName(initialName); // Отменяем изменения
             setIsEditing(false);
         }
     };
@@ -48,7 +50,7 @@ export function EditableTab({ initialName, onNameChange }: EditableTabProps) {
                 onChange={(e) => setName(e.target.value)}
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
-                className="h-6 text-xs ml-2 w-32"
+                className="h-6 text-xs ml-2 w-32 bg-background"
             />
         );
     }

@@ -31,6 +31,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useHotkeys } from "@/hooks/use-hotkeys"; // <-- Импорт
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -45,7 +47,10 @@ export default function HomePage() {
         init, // Действие для инициализации
     } = useTabsStore();
 
+    const { t, i18n } = useTranslation();
+
     const [user, setUser] = useState<User | null>(null);
+    const [editingTabId, setEditingTabId] = useState<string | null>(null);
 
     // Добавляем горячую клавишу
     useHotkeys([["ctrl+enter", () => sendRequest()]]);
@@ -97,8 +102,9 @@ export default function HomePage() {
         return (
             <div className="flex flex-col h-screen bg-background text-foreground">
                 <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
-                    <h1 className="text-xl font-bold">Nextman API</h1>
+                    <h1 className="text-xl font-bold">{t("header.title")}</h1>
                     <div className="flex items-center gap-2">
+                        <LanguageSwitcher />
                         <HistorySidebar user={user} />
                         <AuthButton />
                     </div>
@@ -106,7 +112,7 @@ export default function HomePage() {
                 <main className="flex items-center justify-center flex-grow">
                     {/* Кнопка "Создать запрос" появляется, если все вкладки были закрыты */}
                     <Button onClick={() => addTab()}>
-                        Create a new request
+                        {t("main.create_request_button")}
                     </Button>
                 </main>
             </div>
@@ -116,8 +122,9 @@ export default function HomePage() {
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
             <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
-                <h1 className="text-xl font-bold">Nextman API</h1>
+                <h1 className="text-xl font-bold">{t("header.title")}</h1>
                 <div className="flex items-center gap-2">
+                    <LanguageSwitcher />
                     <HistorySidebar user={user} />
                     <AuthButton />
                 </div>
@@ -125,72 +132,119 @@ export default function HomePage() {
 
             {/* Панель с вкладками запросов */}
             <div className="flex items-center border-b bg-muted/40 p-1 gap-1 overflow-x-auto">
-                {tabs.map((tab) => (
-                    <div
-                        key={tab.id}
-                        // Оборачиваем все в div и стилизуем его, чтобы он был похож на кнопку вкладки
-                        className={cn(
-                            "h-8 px-2 relative flex-shrink-0 flex items-center rounded-md group",
-                            activeTabId === tab.id
-                                ? "bg-background shadow-sm"
-                                : "hover:bg-accent hover:text-accent-foreground"
-                        )}
-                    >
+                {tabs.map((tab) => {
+                    const displayName =
+                        tab.name === "tabs.untitled_request"
+                            ? t("tabs.untitled_request")
+                            : tab.name;
+
+                    const isEditing = editingTabId === tab.id;
+
+                    return (
                         <div
-                            onClick={() => setActiveTab(tab.id)}
-                            className="flex items-center cursor-pointer flex-grow h-full pr-2"
-                        >
-                            {/* Индикатор изменений */}
-                            <AnimatePresence>
-                                {tab.isDirty && (
-                                    <motion.span
-                                        initial={{ scale: 0, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        exit={{ scale: 0, opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="mr-2 h-2 w-2 rounded-full bg-blue-500 flex-shrink-0"
-                                    />
-                                )}
-                            </AnimatePresence>
-
-                            <span
-                                className={cn(
-                                    "text-xs font-semibold",
-                                    tab.method === "GET" && "text-green-500",
-                                    tab.method === "POST" && "text-yellow-500",
-                                    tab.method === "PUT" && "text-blue-500",
-                                    tab.method === "DELETE" && "text-red-500"
-                                )}
-                            >
-                                {tab.method}
-                            </span>
-
-                            <EditableTab
-                                initialName={tab.name}
-                                onNameChange={(newName) =>
-                                    updateActiveTab({ name: newName })
-                                }
-                            />
-                        </div>
-
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                                e.stopPropagation(); // Предотвращаем любые другие клики
-                                closeTab(tab.id);
-                            }}
+                            key={tab.id}
                             className={cn(
-                                "h-5 w-5 rounded-full",
+                                "h-8 px-2 relative flex-shrink-0 flex items-center rounded-md group",
                                 activeTabId === tab.id
-                                    ? "opacity-100"
-                                    : "opacity-0 group-hover:opacity-100"
+                                    ? "bg-background shadow-sm"
+                                    : "hover:bg-accent hover:text-accent-foreground"
                             )}
                         >
-                            <X className="h-3 w-3" />
-                        </Button>
-                    </div>
-                ))}
+                            <div
+                                onClick={() => {
+                                    if (!isEditing) setActiveTab(tab.id);
+                                }}
+                                className="flex items-center cursor-pointer flex-grow h-full pr-2"
+                            >
+                                <AnimatePresence>
+                                    {tab.isDirty && (
+                                        <motion.span
+                                            initial={{ scale: 0, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0, opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="mr-2 h-2 w-2 rounded-full bg-blue-500 flex-shrink-0"
+                                        />
+                                    )}
+                                </AnimatePresence>
+
+                                <span
+                                    className={cn(
+                                        "text-xs font-semibold",
+                                        tab.method === "GET" &&
+                                            "text-green-500",
+                                        tab.method === "POST" &&
+                                            "text-yellow-500",
+                                        tab.method === "PUT" && "text-blue-500",
+                                        tab.method === "DELETE" &&
+                                            "text-red-500"
+                                    )}
+                                >
+                                    {tab.method}
+                                </span>
+
+                                {isEditing ? (
+                                    <Input
+                                        type="text"
+                                        value={
+                                            tab.name === "tabs.untitled_request"
+                                                ? displayName
+                                                : tab.name
+                                        }
+                                        onChange={(e) =>
+                                            updateActiveTab({
+                                                name: e.target.value,
+                                            })
+                                        }
+                                        onBlur={() => setEditingTabId(null)}
+                                        onKeyDown={(e) => {
+                                            if (
+                                                e.key === "Enter" ||
+                                                e.key === "Escape"
+                                            ) {
+                                                if (tab.name.trim() === "") {
+                                                    updateActiveTab({
+                                                        name: "tabs.untitled_request",
+                                                    });
+                                                }
+                                                setEditingTabId(null);
+                                            }
+                                        }}
+                                        autoFocus
+                                        onFocus={(e) => e.target.select()}
+                                        className="h-6 text-xs ml-2 w-32 bg-background"
+                                    />
+                                ) : (
+                                    <span
+                                        onDoubleClick={() =>
+                                            setEditingTabId(tab.id)
+                                        }
+                                        className="text-xs ml-2"
+                                    >
+                                        {displayName}
+                                    </span>
+                                )}
+                            </div>
+
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    closeTab(tab.id);
+                                }}
+                                className={cn(
+                                    "h-5 w-5 rounded-full",
+                                    activeTabId === tab.id
+                                        ? "opacity-100"
+                                        : "opacity-0 group-hover:opacity-100"
+                                )}
+                            >
+                                <X className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    );
+                })}
                 <Button
                     variant="ghost"
                     size="icon"
@@ -263,8 +317,8 @@ export default function HomePage() {
                                             disabled={activeTab.loading}
                                         >
                                             {activeTab.loading
-                                                ? "Sending..."
-                                                : "Send"}
+                                                ? t("main.sending_button")
+                                                : t("main.send_button")}
                                         </Button>
                                     </div>
                                     {/* Табы для параметров, заголовков, тела запроса */}
@@ -274,13 +328,13 @@ export default function HomePage() {
                                     >
                                         <TabsList>
                                             <TabsTrigger value="params">
-                                                Query Params
+                                                {t("main.query_params_tab")}
                                             </TabsTrigger>
                                             <TabsTrigger value="headers">
-                                                Headers
+                                                {t("main.headers_tab")}
                                             </TabsTrigger>
                                             <TabsTrigger value="body">
-                                                Body
+                                                {t("main.body_tab")}
                                             </TabsTrigger>
                                         </TabsList>
                                         <TabsContent
@@ -325,13 +379,13 @@ export default function HomePage() {
                                 <div className="p-4 h-full flex flex-col">
                                     <div className="flex items-center gap-4 mb-2">
                                         <h2 className="text-lg font-semibold">
-                                            Response
+                                            {t("main.response_title")}
                                         </h2>
                                         {/* Этот блок не анимируем, т.к. он должен обновляться мгновенно */}
                                         {activeTab.response && (
                                             <div className="flex items-center gap-4 text-sm">
                                                 <span>
-                                                    Status:{" "}
+                                                    {t("main.status_label")}:{" "}
                                                     <span
                                                         className={cn(
                                                             "font-semibold",
@@ -357,7 +411,7 @@ export default function HomePage() {
                                                     </span>
                                                 </span>
                                                 <span>
-                                                    Time:{" "}
+                                                    {t("main.time_label")}:{" "}
                                                     <span className="font-semibold text-blue-500">
                                                         {
                                                             activeTab.response
@@ -387,10 +441,14 @@ export default function HomePage() {
                                                 >
                                                     <TabsList>
                                                         <TabsTrigger value="body">
-                                                            Body
+                                                            {t(
+                                                                "main.response_body_tab"
+                                                            )}
                                                         </TabsTrigger>
                                                         <TabsTrigger value="headers">
-                                                            Headers
+                                                            {t(
+                                                                "main.response_headers_tab"
+                                                            )}
                                                         </TabsTrigger>
                                                     </TabsList>
                                                     <TabsContent
@@ -437,8 +495,12 @@ export default function HomePage() {
                                             >
                                                 <p className="text-muted-foreground">
                                                     {activeTab.loading
-                                                        ? "Waiting for response..."
-                                                        : "Send a request to see the response here"}
+                                                        ? t(
+                                                              "main.response_waiting"
+                                                          )
+                                                        : t(
+                                                              "main.response_placeholder"
+                                                          )}
                                                 </p>
                                             </motion.div>
                                         )}

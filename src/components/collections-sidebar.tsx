@@ -38,6 +38,7 @@ import { DialogDescription } from "@/components/ui/dialog";
 import { KeyValuePair } from "./key-value-editor";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { useTranslation } from "react-i18next";
 
 export function CollectionsSidebar() {
     const {
@@ -53,6 +54,7 @@ export function CollectionsSidebar() {
     const [newCollectionName, setNewCollectionName] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
     const [user, setUser] = useState<User | null>(null);
+    const { t } = useTranslation();
 
     useEffect(() => {
         const supabase = createClient();
@@ -132,7 +134,9 @@ export function CollectionsSidebar() {
     return (
         <div className="p-4 h-full flex flex-col border-r">
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Collections</h2>
+                <h2 className="text-lg font-semibold">
+                    {t("collections.title")}
+                </h2>
                 {user && (
                     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                         <DialogTrigger asChild>
@@ -145,10 +149,11 @@ export function CollectionsSidebar() {
                             onOpenAutoFocus={(e) => e.preventDefault()}
                         >
                             <DialogHeader>
-                                <DialogTitle>Create New Collection</DialogTitle>
+                                <DialogTitle>
+                                    {t("collections.create_dialog_title")}
+                                </DialogTitle>
                                 <DialogDescription>
-                                    Enter a name for your new collection to
-                                    organize your requests.
+                                    {t("collections.create_dialog_description")}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
@@ -157,7 +162,7 @@ export function CollectionsSidebar() {
                                         htmlFor="name"
                                         className="text-right"
                                     >
-                                        Name
+                                        {t("collections.name_label")}
                                     </Label>
                                     <Input
                                         ref={inputRef}
@@ -175,7 +180,7 @@ export function CollectionsSidebar() {
                                     type="submit"
                                     onClick={handleCreateCollection}
                                 >
-                                    Create
+                                    {t("collections.create_button")}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
@@ -196,11 +201,10 @@ export function CollectionsSidebar() {
                                 <div className="text-center py-8">
                                     <FolderPlus className="h-10 w-10 mx-auto text-muted-foreground" />
                                     <h3 className="mt-2 text-sm font-semibold">
-                                        No Collections
+                                        {t("collections.empty_title")}
                                     </h3>
                                     <p className="mt-1 text-sm text-muted-foreground">
-                                        Get started by creating a new
-                                        collection.
+                                        {t("collections.empty_description")}
                                     </p>
                                 </div>
                             ) : (
@@ -235,25 +239,24 @@ export function CollectionsSidebar() {
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>
-                                                                Are you sure?
+                                                                {t(
+                                                                    "collections.delete_collection_title"
+                                                                )}
                                                             </AlertDialogTitle>
                                                             <AlertDialogDescription>
-                                                                This will
-                                                                permanently
-                                                                delete the
-                                                                collection
-                                                                &quot;
-                                                                {
-                                                                    collection.name
-                                                                }
-                                                                &quot; and all
-                                                                requests inside
-                                                                it.
+                                                                {t(
+                                                                    "collections.delete_collection_description",
+                                                                    {
+                                                                        name: collection.name,
+                                                                    }
+                                                                )}
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
                                                             <AlertDialogCancel>
-                                                                Cancel
+                                                                {t(
+                                                                    "common.cancel"
+                                                                )}
                                                             </AlertDialogCancel>
                                                             <AlertDialogAction
                                                                 onClick={async (
@@ -265,7 +268,9 @@ export function CollectionsSidebar() {
                                                                     );
                                                                 }}
                                                             >
-                                                                Delete
+                                                                {t(
+                                                                    "common.delete"
+                                                                )}
                                                             </AlertDialogAction>
                                                         </AlertDialogFooter>
                                                     </AlertDialogContent>
@@ -316,22 +321,17 @@ export function CollectionsSidebar() {
                                                                     <AlertDialogContent>
                                                                         <AlertDialogHeader>
                                                                             <AlertDialogTitle>
-                                                                                Are
-                                                                                you
-                                                                                sure?
+                                                                                {t(
+                                                                                    "collections.delete_collection_title"
+                                                                                )}
                                                                             </AlertDialogTitle>
                                                                             <AlertDialogDescription>
-                                                                                This
-                                                                                will
-                                                                                permanently
-                                                                                delete
-                                                                                the
-                                                                                request
-                                                                                &quot;
-                                                                                {
-                                                                                    req.name
-                                                                                }
-                                                                                &quot;.
+                                                                                {t(
+                                                                                    "collections.delete_request_description",
+                                                                                    {
+                                                                                        name: req.name,
+                                                                                    }
+                                                                                )}
                                                                             </AlertDialogDescription>
                                                                         </AlertDialogHeader>
                                                                         <AlertDialogFooter>
@@ -358,8 +358,9 @@ export function CollectionsSidebar() {
                                                     )
                                                 ) : (
                                                     <p className="text-xs text-muted-foreground p-2">
-                                                        No requests in this
-                                                        collection.
+                                                        {t(
+                                                            "collections.empty_collection"
+                                                        )}
                                                     </p>
                                                 )}
                                             </AccordionContent>
@@ -373,11 +374,10 @@ export function CollectionsSidebar() {
                     <div className="text-center py-8">
                         <FolderPlus className="h-10 w-10 mx-auto text-muted-foreground" />
                         <h3 className="mt-2 text-sm font-semibold">
-                            Login to view Collections
+                            {t("collections.login_prompt_title")}
                         </h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Your saved requests will appear here once you log
-                            in.
+                            {t("collections.login_prompt_description")}
                         </p>
                     </div>
                 )}

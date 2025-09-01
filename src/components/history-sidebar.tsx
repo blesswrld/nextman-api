@@ -16,6 +16,7 @@ import { HistorySkeleton } from "./history-skeleton";
 import { motion } from "framer-motion";
 import { SheetDescription } from "@/components/ui/sheet";
 import type { User } from "@supabase/supabase-js";
+import { useTranslation } from "react-i18next";
 
 // 1. Объявляем, что наш компонент теперь принимает пропс `user`
 interface HistorySidebarProps {
@@ -27,6 +28,8 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const addTab = useTabsStore((state) => state.addTab);
+
+    const { t } = useTranslation();
 
     useEffect(() => {
         // Загружаем историю, когда сайдбар открывается И пользователь залогинен
@@ -64,9 +67,9 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
             </SheetTrigger>
             <SheetContent className="w-[400px] sm:w-[540px] flex flex-col">
                 <SheetHeader>
-                    <SheetTitle>Request History</SheetTitle>
+                    <SheetTitle>{t("history.title")}</SheetTitle>
                     <SheetDescription>
-                        View and re-run your past 100 requests.
+                        {t("history.description")}
                     </SheetDescription>
                 </SheetHeader>
 
@@ -81,7 +84,7 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                                 disabled={history.length === 0}
                             >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Clear All
+                                {t("history.clear_all_button")}
                             </Button>
                         </div>
                         <div className="flex-grow overflow-y-auto">
@@ -125,11 +128,12 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                                         <div className="text-center py-8 h-full flex flex-col items-center justify-center">
                                             <History className="h-10 w-10 mx-auto text-muted-foreground" />
                                             <h3 className="mt-2 text-sm font-semibold">
-                                                No History Yet
+                                                {t("history.empty_description")}
                                             </h3>
                                             <p className="mt-1 text-sm text-muted-foreground">
-                                                Your recent requests will appear
-                                                here.
+                                                {t(
+                                                    "history.login_prompt_description"
+                                                )}
                                             </p>
                                         </div>
                                     )}
@@ -142,11 +146,10 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                     <div className="flex-grow flex flex-col items-center justify-center text-center">
                         <LogIn className="h-10 w-10 mx-auto text-muted-foreground" />
                         <h3 className="mt-2 text-sm font-semibold">
-                            Login to see History
+                            {t("history.login_prompt_title")}
                         </h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Request history is only available for logged in
-                            users.
+                            {t("history.login_prompt_description")}
                         </p>
                     </div>
                 )}

@@ -22,6 +22,7 @@ import {
 import { useCollectionsStore } from "@/store/collections";
 import { useTabsStore } from "@/store/tabs";
 import { DialogDescription } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 
 export function SaveRequestDialog() {
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -34,6 +35,8 @@ export function SaveRequestDialog() {
     const activeTab = useTabsStore((state) =>
         state.tabs.find((t) => t.id === state.activeTabId)
     );
+
+    const { t } = useTranslation();
 
     // Функция для сохранения запроса
     const handleSave = async () => {
@@ -80,19 +83,19 @@ export function SaveRequestDialog() {
     return (
         <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button variant="outline">Save</Button>
+                <Button variant="outline">{t("main.save_button")}</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Save Request</DialogTitle>
+                    <DialogTitle>{t("save_dialog.title")}</DialogTitle>
                     <DialogDescription>
-                        Save the current request to a collection for later use.
+                        {t("save_dialog.description")}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">
-                            Name
+                            {t("save_dialog.name_label")}
                         </Label>
                         <Input
                             id="name"
@@ -103,11 +106,15 @@ export function SaveRequestDialog() {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="collection" className="text-right">
-                            Collection
+                            {t("save_dialog.collection_label")}
                         </Label>
                         <Select onValueChange={setSelectedCollection}>
                             <SelectTrigger className="col-span-3">
-                                <SelectValue placeholder="Select a collection" />
+                                <SelectValue
+                                    placeholder={t(
+                                        "save_dialog.select_collection_placeholder"
+                                    )}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {collections.map((c) => (
@@ -121,7 +128,7 @@ export function SaveRequestDialog() {
                 </div>
                 <DialogFooter>
                     <Button type="submit" onClick={handleSave}>
-                        Save
+                        {t("save_dialog.save_button")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
