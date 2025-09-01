@@ -24,6 +24,7 @@ import { HistorySidebar } from "@/components/history-sidebar";
 import { useEffect } from "react";
 import { ResponseHeaders } from "@/components/response-headers";
 import { EditableTab } from "@/components/editable-tab";
+import { AuthButton } from "@/components/auth-button";
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -63,7 +64,10 @@ export default function HomePage() {
             <div className="flex flex-col h-screen bg-background text-foreground">
                 <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                     <h1 className="text-xl font-bold">Nextman API</h1>
-                    <HistorySidebar />
+                    <div className="flex items-center gap-2">
+                        <HistorySidebar />
+                        <AuthButton />
+                    </div>
                 </header>
                 <main className="flex items-center justify-center flex-grow">
                     {/* Кнопка "Создать запрос" появляется, если все вкладки были закрыты */}
@@ -79,7 +83,10 @@ export default function HomePage() {
         <div className="flex flex-col h-screen bg-background text-foreground">
             <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                 <h1 className="text-xl font-bold">Nextman API</h1>
-                <HistorySidebar />
+                <div className="flex items-center gap-2">
+                    <HistorySidebar />
+                    <AuthButton />
+                </div>
             </header>
 
             {/* Панель с вкладками запросов */}
