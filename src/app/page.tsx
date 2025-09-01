@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,8 +9,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import {
     ResizableHandle,
     ResizablePanel,
@@ -20,115 +17,113 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CodeEditor } from "@/components/editor";
 import { KeyValueEditor, KeyValuePair } from "@/components/key-value-editor";
+import { useTabsStore } from "@/store/tabs";
+import { cn } from "@/lib/utils";
+import { X, Plus } from "lucide-react";
+import { HistorySidebar } from "@/components/history-sidebar";
+import { useEffect } from "react";
 
 export default function HomePage() {
-    const [url, setUrl] = useState(
-        "https://jsonplaceholder.typicode.com/todos/1"
-    );
-    const [method, setMethod] = useState("GET");
-    const [response, setResponse] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [body, setBody] = useState('{\n  "key": "value"\n}');
-    const [queryParams, setQueryParams] = useState<KeyValuePair[]>([
-        { id: crypto.randomUUID(), key: "", value: "" },
-    ]);
-    const [headers, setHeaders] = useState<KeyValuePair[]>([
-        { id: crypto.randomUUID(), key: "", value: "" },
-    ]);
+    // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
+    const {
+        tabs,
+        activeTabId,
+        addTab,
+        closeTab,
+        setActiveTab,
+        updateActiveTab,
+        sendRequest, // Главное действие для отправки запроса
+        init, // Действие для инициализации
+    } = useTabsStore();
 
-    const handleSendRequest = async () => {
-        setLoading(true);
-        setResponse("");
-        try {
-            // Проверяем, что тело запроса - валидный JSON, если метод это подразумевает
-            // @ts-ignore
-            let parsedBody: any = null;
-            if (
-                ["POST", "PUT", "PATCH"].includes(method) &&
-                body.trim() !== ""
-            ) {
-                try {
-                    parsedBody = JSON.parse(body);
-                } catch (e) {
-                    throw new Error("Invalid JSON in request body");
-                }
-            }
+    // Инициализируем стор один раз при монтировании компонента
+    useEffect(() => {
+        if (init) init();
+    }, [init]);
 
-            const finalUrl = buildUrlWithParams();
-            const finalHeaders = buildHeadersObject();
+    // --- Находим активную вкладку по её ID ---
+    const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
-            const res = await fetch("/api/proxy", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    url: finalUrl,
-                    method,
-                    headers: finalHeaders,
-                    body: parsedBody ? JSON.stringify(parsedBody) : undefined,
-                }),
-            });
+    // --- Функции для обновления данных в сторе ---
+    // Они вызываются дочерними компонентами и обновляют состояние активной вкладки
+    const handleUrlChange = (url: string) => updateActiveTab({ url });
+    const handleMethodChange = (method: string) => updateActiveTab({ method });
+    const handleBodyChange = (body: string | undefined) =>
+        updateActiveTab({ body: body || "" });
+    const handleQueryParamsChange = (queryParams: KeyValuePair[]) =>
+        updateActiveTab({ queryParams });
+    const handleHeadersChange = (headers: KeyValuePair[]) =>
+        updateActiveTab({ headers });
 
-            if (!res.ok)
-                throw new Error(
-                    `Proxy request failed: ${res.status} ${res.statusText}`
-                );
-
-            const data = await res.json();
-
-            // Пытаемся красиво отформатировать тело ответа
-            let formattedBody = data.body;
-            try {
-                const parsedJson = JSON.parse(data.body);
-                formattedBody = JSON.stringify(parsedJson, null, 2);
-            } catch (e) {
-                // Если не JSON, оставляем как есть
-            }
-            data.body = formattedBody;
-
-            setResponse(JSON.stringify(data, null, 2));
-        } catch (error) {
-            const errorResponse =
-                error instanceof Error
-                    ? { error: error.message }
-                    : { error: "An unknown error occurred" };
-            setResponse(JSON.stringify(errorResponse, null, 2));
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Функция для сборки URL с параметрами:
-    const buildUrlWithParams = () => {
-        const activeParams = queryParams.filter((p) => p.key);
-        if (activeParams.length === 0) {
-            return url;
-        }
-        const params = new URLSearchParams();
-        activeParams.forEach((p) => params.append(p.key, p.value));
-
-        // Проверяем, есть ли в URL уже параметры
-        const [baseUrl, existingParams] = url.split("?");
-        if (existingParams) {
-            return `${url}&${params.toString()}`;
-        }
-        return `${baseUrl}?${params.toString()}`;
-    };
-
-    // Функция для преобразования заголовков в объект:
-    const buildHeadersObject = () => {
-        const activeHeaders = headers.filter((h) => h.key);
-        const headersObj: Record<string, string> = {};
-        activeHeaders.forEach((h) => {
-            headersObj[h.key] = h.value;
-        });
-        return headersObj;
-    };
+    // --- Если активной вкладки нет (например, все закрыты или при первой загрузке), показываем заглушку ---
+    if (!activeTab) {
+        return (
+            <div className="flex flex-col h-screen bg-background text-foreground">
+                <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
+                    <h1 className="text-xl font-bold">Nextman API</h1>
+                    <HistorySidebar />
+                </header>
+                <main className="flex items-center justify-center flex-grow">
+                    {/* Кнопка "Создать запрос" появляется, если все вкладки были закрыты */}
+                    <Button onClick={() => addTab()}>
+                        Create a new request
+                    </Button>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
-            <header className="p-4 border-b flex-shrink-0">
+            <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                 <h1 className="text-xl font-bold">Nextman API</h1>
+                <HistorySidebar />
             </header>
+
+            {/* Панель с вкладками запросов */}
+            <div className="flex items-center border-b bg-muted/40 p-1 gap-1 overflow-x-auto">
+                {tabs.map((tab) => (
+                    <Button
+                        key={tab.id}
+                        variant="ghost"
+                        onClick={() => setActiveTab(tab.id)}
+                        className={cn(
+                            "h-8 px-2 relative flex-shrink-0", // flex-shrink-0 важен для скролла
+                            activeTabId === tab.id && "bg-background shadow-sm"
+                        )}
+                    >
+                        <span
+                            className={cn(
+                                "text-xs font-semibold",
+                                tab.method === "GET" && "text-green-500",
+                                tab.method === "POST" && "text-yellow-500",
+                                tab.method === "PUT" && "text-blue-500",
+                                tab.method === "DELETE" && "text-red-500"
+                            )}
+                        >
+                            {tab.method}
+                        </span>
+                        <span className="text-xs ml-2">{tab.name}</span>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation(); // Предотвращаем клик по основной кнопке
+                                closeTab(tab.id);
+                            }}
+                            className="ml-2 p-0.5 rounded hover:bg-destructive/20"
+                        >
+                            <X className="h-3 w-3" />
+                        </button>
+                    </Button>
+                ))}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 flex-shrink-0"
+                    onClick={() => addTab()}
+                >
+                    <Plus className="h-4 w-4" />
+                </Button>
+            </div>
 
             <main className="flex-grow p-4">
                 <ResizablePanelGroup
@@ -136,13 +131,13 @@ export default function HomePage() {
                     className="h-full border rounded-lg"
                 >
                     {/* Верхняя панель: Запрос */}
-                    <ResizablePanel defaultSize={40}>
+                    <ResizablePanel defaultSize={40} minSize={20}>
                         <div className="p-4 h-full flex flex-col gap-4">
                             {/* Строка URL */}
                             <div className="flex items-center gap-2">
                                 <Select
-                                    value={method}
-                                    onValueChange={setMethod}
+                                    value={activeTab.method}
+                                    onValueChange={handleMethodChange}
                                 >
                                     <SelectTrigger className="w-[120px]">
                                         <SelectValue placeholder="Method" />
@@ -163,21 +158,23 @@ export default function HomePage() {
                                 </Select>
                                 <Input
                                     type="text"
-                                    value={url}
-                                    onChange={(e) => setUrl(e.target.value)}
+                                    value={activeTab.url}
+                                    onChange={(e) =>
+                                        handleUrlChange(e.target.value)
+                                    }
                                     placeholder="https://api.example.com"
                                     className="flex-grow"
                                 />
                                 <Button
-                                    onClick={handleSendRequest}
-                                    disabled={loading}
+                                    onClick={sendRequest} // <-- Используем действие из стора
+                                    disabled={activeTab.loading}
                                 >
-                                    {loading ? "Sending..." : "Send"}
+                                    {activeTab.loading ? "Sending..." : "Send"}
                                 </Button>
                             </div>
                             {/* Табы для параметров, заголовков, тела запроса */}
                             <Tabs
-                                defaultValue="body"
+                                defaultValue="params"
                                 className="flex-grow flex flex-col"
                             >
                                 <TabsList>
@@ -191,15 +188,15 @@ export default function HomePage() {
                                 </TabsList>
                                 <TabsContent value="params" className="mt-4">
                                     <KeyValueEditor
-                                        pairs={queryParams}
-                                        setPairs={setQueryParams}
+                                        pairs={activeTab.queryParams}
+                                        setPairs={handleQueryParamsChange}
                                         placeholderKey="Parameter"
                                     />
                                 </TabsContent>
                                 <TabsContent value="headers" className="mt-4">
                                     <KeyValueEditor
-                                        pairs={headers}
-                                        setPairs={setHeaders}
+                                        pairs={activeTab.headers}
+                                        setPairs={handleHeadersChange}
                                         placeholderKey="Header"
                                     />
                                 </TabsContent>
@@ -208,10 +205,8 @@ export default function HomePage() {
                                     className="mt-4 flex-grow"
                                 >
                                     <CodeEditor
-                                        value={body}
-                                        onChange={(value) =>
-                                            setBody(value || "")
-                                        }
+                                        value={activeTab.body}
+                                        onChange={handleBodyChange}
                                     />
                                 </TabsContent>
                             </Tabs>
@@ -221,17 +216,16 @@ export default function HomePage() {
                     <ResizableHandle withHandle />
 
                     {/* Нижняя панель: Ответ */}
-                    <ResizablePanel defaultSize={60}>
+                    <ResizablePanel defaultSize={60} minSize={20}>
                         <div className="p-4 h-full flex flex-col">
                             <h2 className="text-lg font-semibold mb-2">
                                 Response
                             </h2>
                             <div className="flex-grow">
-                                {/* Устанавливаем `key`, чтобы редактор перерендерился при новом ответе */}
                                 <CodeEditor
-                                    value={response}
+                                    value={activeTab.response}
                                     readOnly={true}
-                                    key={response}
+                                    key={activeTab.id + activeTab.response} // Ключ для принудительного ререндера
                                 />
                             </div>
                         </div>
