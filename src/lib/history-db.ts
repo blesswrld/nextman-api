@@ -8,6 +8,7 @@ export interface HistoryItem {
     id: string;
     url: string;
     method: string;
+    name: string;
     // Мы не будем хранить тело, заголовки и ответ, чтобы не раздувать БД.
     // Только самое необходимое для повторного вызова.
     timestamp: number;
@@ -44,6 +45,19 @@ export async function addHistoryItem(
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
 
+    // 1. Ищем существующий элемент с таким же методом и URL
+    const allItems = await store.getAll();
+    const existingItem = allItems.find(
+        (historyItem) =>
+            historyItem.method === item.method && historyItem.url === item.url
+    );
+
+    // 2. Если нашли, удаляем его
+    if (existingItem) {
+        await store.delete(existingItem.id);
+    }
+
+    // 3. Добавляем новый элемент, как и раньше
     const newItem: HistoryItem = {
         ...item,
         id: crypto.randomUUID(),
@@ -52,7 +66,7 @@ export async function addHistoryItem(
 
     await store.put(newItem);
 
-    // Проверяем и удаляем старые записи, если превышен лимит
+    // Проверяем и удаляем самые старые записи, если превышен лимит
     const count = await store.count();
     if (count > MAX_HISTORY_ITEMS) {
         const cursor = await store.index("by-timestamp").openCursor();

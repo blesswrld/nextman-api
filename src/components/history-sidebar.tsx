@@ -31,9 +31,11 @@ export function HistorySidebar() {
 
     const handleHistoryItemClick = (item: HistoryItem) => {
         addTab({
-            name: `${item.method} ${item.url.slice(0, 20)}...`,
+            name: item.name, // <-- ИСПОЛЬЗУЕМ СОХРАНЕННОЕ ИМЯ
             method: item.method,
             url: item.url,
+            // Сбрасываем isDirty, так как вкладка только что "загружена" из истории
+            isDirty: false,
         });
         setIsOpen(false);
     };
@@ -61,16 +63,18 @@ export function HistorySidebar() {
                             className="p-2 border rounded-md hover:bg-muted cursor-pointer"
                             onClick={() => handleHistoryItemClick(item)}
                         >
-                            <div className="flex items-center gap-2">
-                                <span className="font-semibold text-green-500 w-16">
+                            {/* Отображаем сохраненное имя */}
+                            <div className="text-sm font-medium truncate">
+                                {item.name}
+                            </div>
+
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="font-semibold text-green-500 w-16 text-xs">
                                     {item.method}
                                 </span>
-                                <span className="text-sm truncate">
+                                <span className="text-xs text-muted-foreground truncate">
                                     {item.url}
                                 </span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                                {new Date(item.timestamp).toLocaleString()}
                             </div>
                         </div>
                     ))}

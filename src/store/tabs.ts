@@ -13,6 +13,7 @@ export interface RequestTab {
     body: string;
     response: ResponseData | null;
     loading: boolean;
+    isDirty?: boolean;
 }
 
 // Описываем тип всего нашего хранилища
@@ -50,6 +51,7 @@ const createNewTab = (data?: Partial<RequestTab>): RequestTab => ({
     body: data?.body || "",
     response: null,
     loading: data?.loading || false,
+    isDirty: data?.isDirty === undefined ? false : data.isDirty,
     ...data,
 });
 
@@ -121,9 +123,13 @@ export const useTabsStore = create<TabsState>((set, get) => ({
     },
 
     updateActiveTab: (data) => {
+        // Проверяем, было ли поле isDirty передано явно. Если нет, ставим true.
+        const isDirty = data.isDirty === undefined ? true : data.isDirty;
         set((state) => ({
             tabs: state.tabs.map((tab) =>
-                tab.id === state.activeTabId ? { ...tab, ...data } : tab
+                tab.id === state.activeTabId
+                    ? { ...tab, ...data, isDirty }
+                    : tab
             ),
         }));
     },
@@ -133,7 +139,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (!activeTab) return;
 
-        updateActiveTab({ loading: true, response: null });
+        updateActiveTab({ loading: true, response: null, isDirty: false }); // Сбрасываем isDirty в начале
         const startTime = performance.now(); // Засекаем время начала
 
         try {
@@ -187,6 +193,26 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 };
             }
 
+            // 1. Определяем, какое имя использовать для истории и обновления вкладки
+            let finalTabName = activeTab.name;
+            if (activeTab.name === "Untitled Request") {
+                const cleanUrl = activeTab.url.replace(
+                    /^(https?:\/\/)?(www\.)?/,
+                    ""
+                );
+                finalTabName = `${activeTab.method} ${cleanUrl
+                    .split("?")[0]
+                    .slice(0, 25)}...`;
+            }
+
+            // 2. Сохраняем в историю с правильным (возможно, новым) именем
+            await addHistoryItem({
+                url: activeTab.url,
+                method: activeTab.method,
+                name: finalTabName,
+            });
+
+            // 3. Обновляем вкладку, включая ответ и новое имя
             let formattedBody = data.body;
             try {
                 formattedBody = JSON.stringify(JSON.parse(data.body), null, 2);
@@ -200,11 +226,10 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 time: requestTime,
             };
 
-            updateActiveTab({ response: responseData });
-
-            await addHistoryItem({
-                url: activeTab.url,
-                method: activeTab.method,
+            updateActiveTab({
+                response: responseData,
+                name: finalTabName,
+                isDirty: false,
             });
             // @ts-ignore
         } catch (error: any) {
@@ -213,7 +238,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
 
             // Если ошибка уже содержит объект ответа, используем его
             if (error.response) {
-                updateActiveTab({ response: error.response });
+                updateActiveTab({ response: error.response, isDirty: false });
                 return;
             }
 
@@ -228,9 +253,9 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 ),
                 time: requestTime,
             };
-            updateActiveTab({ response: errorResponse });
+            updateActiveTab({ response: errorResponse, isDirty: false });
         } finally {
-            updateActiveTab({ loading: false });
+            updateActiveTab({ loading: false, isDirty: false });
         }
     },
 }));
