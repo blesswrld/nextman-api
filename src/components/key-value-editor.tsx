@@ -1,8 +1,8 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { VariableInput } from "./variable-input"; // <-- Импортируем VariableInput
 
 export interface KeyValuePair {
     id: string;
@@ -12,6 +12,7 @@ export interface KeyValuePair {
 
 interface KeyValueEditorProps {
     pairs: KeyValuePair[];
+    // Типизируем `onPairsChange` вместо `setPairs`
     onPairsChange: (newPairs: KeyValuePair[]) => void;
     placeholderKey?: string;
     placeholderValue?: string;
@@ -20,8 +21,8 @@ interface KeyValueEditorProps {
 export function KeyValueEditor({
     pairs,
     onPairsChange,
-    placeholderKey,
-    placeholderValue,
+    placeholderKey = "Key",
+    placeholderValue = "Value",
 }: KeyValueEditorProps) {
     const handleFieldChange = (
         id: string,
@@ -56,7 +57,7 @@ export function KeyValueEditor({
         <div className="space-y-2">
             {pairs.map((pair, index) => (
                 <div key={pair.id} className="flex items-center gap-2 p-1">
-                    <Input
+                    <VariableInput
                         placeholder={placeholderKey}
                         value={pair.key}
                         onChange={(e) =>
@@ -64,7 +65,7 @@ export function KeyValueEditor({
                         }
                         className="font-mono text-sm"
                     />
-                    <Input
+                    <VariableInput
                         placeholder={placeholderValue}
                         value={pair.value}
                         onChange={(e) =>

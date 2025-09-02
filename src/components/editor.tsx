@@ -1,6 +1,7 @@
 "use client";
 
 import Editor, { OnChange, OnMount } from "@monaco-editor/react";
+import { useCompletion } from "@/hooks/use-completion";
 
 interface CodeEditorProps {
     value: string;
@@ -15,9 +16,17 @@ export function CodeEditor({
     readOnly = false,
     language = "json",
 }: CodeEditorProps) {
+    const { registerCompletionProvider } = useCompletion();
+
     const handleEditorDidMount: OnMount = (editor, monaco) => {
-        // Здесь можно кастомизировать редактор при его монтировании
-        // Например, добавить кастомные темы или настройки
+        // --- РЕГИСТРИРУЕМ АВТОДОПОЛНЕНИЕ ---
+        const provider = registerCompletionProvider(monaco);
+
+        // Очищаем провайдер при размонтировании, чтобы избежать утечек
+        editor.onDidDispose(() => {
+            provider.dispose();
+        });
+
         editor.focus();
     };
 

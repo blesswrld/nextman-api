@@ -53,3 +53,30 @@ export function generateFetch(input: CodeGenInput): string {
 
     return `fetch('${input.url}', ${options})\n  .then(response => response.json())\n  .then(data => console.log(data))\n  .catch(error => console.error('Error:', error));`;
 }
+
+// --- Генератор для JavaScript (Axios) ---
+export function generateAxios(input: CodeGenInput): string {
+    let config = `{\n  method: '${input.method.toLowerCase()}',\n  url: '${
+        input.url
+    }',`;
+
+    // Добавляем заголовки
+    if (input.headers.length > 0) {
+        config += `\n  headers: {\n`;
+        input.headers.forEach((header) => {
+            if (header.key) {
+                config += `    '${header.key}': '${header.value}',\n`;
+            }
+        });
+        config += `  },`;
+    }
+
+    // Добавляем тело
+    if (input.body && ["POST", "PUT", "PATCH"].includes(input.method)) {
+        config += `\n  data: ${input.body}`;
+    }
+
+    config += `\n}`;
+
+    return `import axios from 'axios';\n\nconst config = ${config};\n\naxios.request(config)\n  .then((response) => {\n    console.log(JSON.stringify(response.data));\n  })\n  .catch((error) => {\n    console.log(error);\n  });`;
+}

@@ -10,7 +10,6 @@ import {
     DialogTrigger,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -24,6 +23,10 @@ import { useTabsStore } from "@/store/tabs";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
+import { Input } from "./ui/input";
+
+const MAX_REQUESTS_PER_COLLECTION = 100;
 
 export function SaveRequestDialog() {
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -40,11 +43,33 @@ export function SaveRequestDialog() {
     const { t } = useTranslation();
     const { toast } = useToast();
 
+    // Логика для проверки лимита
+    const selectedCollectionData = collections.find(
+        (c) => c.id === selectedCollection
+    );
+    const isCollectionFull = selectedCollectionData
+        ? selectedCollectionData.requests.length >= MAX_REQUESTS_PER_COLLECTION
+        : false;
+
     // Функция для сохранения запроса
     const handleSave = async () => {
-        const finalRequestName = requestName.trim();
+        // Проверяем наличие activeTab в самом начале
+        if (!activeTab) return;
 
-        if (!activeTab || !finalRequestName || !selectedCollection) {
+        const finalRequestName = requestName.trim(); // <-- Определяем finalRequestName
+
+        if (isCollectionFull) {
+            toast({
+                title: t("toasts.collection_full_title"),
+                description: t("toasts.collection_full_description", {
+                    max: MAX_REQUESTS_PER_COLLECTION,
+                }),
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (!finalRequestName || !selectedCollection) {
             toast({
                 title: t("toasts.validation_error_title"),
                 description: t("toasts.validation_error_description"),
@@ -69,7 +94,7 @@ export function SaveRequestDialog() {
         }
 
         const requestToSave = {
-            name: finalRequestName,
+            name: finalRequestName, // <-- Используем определенную переменную
             method: activeTab.method,
             url: activeTab.url,
             body: parsedBody,
@@ -84,7 +109,7 @@ export function SaveRequestDialog() {
         toast({
             title: t("toasts.request_saved_title"),
             description: t("toasts.request_saved_description", {
-                name: finalRequestName,
+                name: finalRequestName, // <-- Используем определенную переменную
             }),
         });
 
@@ -92,6 +117,10 @@ export function SaveRequestDialog() {
     };
 
     const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            setSelectedCollection(null); // Сбрасываем выбор при закрытии
+        }
+
         if (open && activeTab) {
             // Предзаполняем имя запроса именем вкладки, если оно не стандартное
             const initialName =
@@ -125,47 +154,62 @@ export function SaveRequestDialog() {
                             value={requestName}
                             onChange={(e) => setRequestName(e.target.value)}
                             className="col-span-3"
+                            autoComplete="off"
                         />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
+
+                    <div className="grid grid-cols-4 items-start gap-4">
                         <Label
                             htmlFor="collection-select"
-                            className="text-right"
+                            className="text-right pt-2"
                         >
                             {t("save_dialog.collection_label")}
                         </Label>
-                        {collections.length > 0 ? (
-                            <Select onValueChange={setSelectedCollection}>
-                                <SelectTrigger
-                                    id="collection-select"
-                                    className="col-span-3"
+                        <div className="col-span-3">
+                            {collections.length > 0 ? (
+                                <Select
+                                    onValueChange={setSelectedCollection}
+                                    value={selectedCollection || ""}
                                 >
-                                    <SelectValue
-                                        placeholder={t(
-                                            "save_dialog.select_collection_placeholder"
+                                    <SelectTrigger id="collection-select">
+                                        <SelectValue
+                                            placeholder={t(
+                                                "save_dialog.select_collection_placeholder"
+                                            )}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {collections.map((c) => (
+                                            <SelectItem key={c.id} value={c.id}>
+                                                {c.name} ({c.requests.length}/
+                                                {MAX_REQUESTS_PER_COLLECTION})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <div className="text-sm text-muted-foreground p-2">
+                                    {t("save_dialog.create_collection_first")}
+                                </div>
+                            )}
+                            {isCollectionFull && (
+                                <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <p>
+                                        {t(
+                                            "save_dialog.collection_full_warning"
                                         )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {collections.map((c) => (
-                                        <SelectItem key={c.id} value={c.id}>
-                                            {c.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        ) : (
-                            <div className="col-span-3 text-sm text-muted-foreground p-2">
-                                {t("save_dialog.create_collection_first")}
-                            </div>
-                        )}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <DialogFooter>
                     <Button
                         type="submit"
                         onClick={handleSave}
-                        disabled={collections.length === 0}
+                        disabled={collections.length === 0 || isCollectionFull}
                     >
                         {t("save_dialog.save_button")}
                     </Button>

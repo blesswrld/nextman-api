@@ -44,7 +44,7 @@
         "name_label": "Name",
         "delete_collection_title": "Are you sure?",
         "delete_collection_description": "This will permanently delete the collection \"{{name}}\" and all requests inside it.",
-        "delete_request_description": "This will permanently delete the request \"{{name}}\".",
+        "delete_request_description": "This action cannot be undone. This will permanently delete the request.",
         "empty_collection": "No requests in this collection."
     },
     "history": {
@@ -77,14 +77,16 @@
         "collection_label": "Collection",
         "select_collection_placeholder": "Select a collection",
         "save_button": "Save",
-        "create_collection_first": "Create a collection first."
+        "create_collection_first": "Create a collection first.",
+        "collection_full_warning": "This collection is full."
     },
     "code_generator": {
         "button_text": "Code",
         "dialog_title": "Generate Code Snippet",
         "dialog_description": "Copy the code snippet for your current request configuration.",
         "curl_tab": "cURL",
-        "fetch_tab": "JavaScript (Fetch)"
+        "fetch_tab": "JavaScript (Fetch)",
+        "axios_tab": "JavaScript (Axios)"
     },
     "theme_switcher": {
         "toggle_theme": "Toggle theme",
@@ -112,6 +114,8 @@
         "request_deleted_title": "Request Deleted",
         "request_deleted_description": "Request \"{{name}}\" was deleted.",
         "collection_deleted_title": "Collection Deleted",
-        "collection_deleted_description": "Collection \"{{name}}\" was deleted."
+        "collection_deleted_description": "Collection \"{{name}}\" was deleted.",
+        "collection_full_title": "Collection is full",
+        "collection_full_description": "A collection can hold a maximum of {{max}} requests."
     }
 }

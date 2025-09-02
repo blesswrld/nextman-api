@@ -2,7 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
-import { PlusCircle, Folder, FileText, Trash2, FolderPlus } from "lucide-react";
+import {
+    PlusCircle,
+    Folder,
+    FileText,
+    Trash2,
+    FolderPlus,
+    FilePenLine,
+} from "lucide-react";
 import { useCollectionsStore, SavedRequest } from "@/store/collections";
 import { useTabsStore } from "@/store/tabs";
 import {
@@ -40,6 +47,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
+import { EditableText } from "./editable-text";
 
 export function CollectionsSidebar() {
     const {
@@ -49,12 +57,17 @@ export function CollectionsSidebar() {
         createCollection,
         deleteCollection,
         deleteRequest,
+        updateCollection,
+        updateRequest,
     } = useCollectionsStore();
     const addTab = useTabsStore((state) => state.addTab);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newCollectionName, setNewCollectionName] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
     const [user, setUser] = useState<User | null>(null);
+    const [editingRequestId, setEditingRequestId] = useState<string | null>(
+        null
+    );
 
     const { t } = useTranslation();
     const { toast } = useToast();
@@ -185,6 +198,7 @@ export function CollectionsSidebar() {
                                             setNewCollectionName(e.target.value)
                                         }
                                         className="col-span-3"
+                                        autoComplete="off"
                                     />
                                 </div>
                             </div>
@@ -231,9 +245,22 @@ export function CollectionsSidebar() {
                                                 <AccordionTrigger className="px-2 py-0 hover:no-underline text-left justify-start">
                                                     <div className="flex items-center gap-2">
                                                         <Folder className="h-4 w-4" />
-                                                        <span className="truncate">
-                                                            {collection.name}
-                                                        </span>
+                                                        <EditableText
+                                                            initialValue={
+                                                                collection.name ||
+                                                                ""
+                                                            }
+                                                            onSave={(newName) =>
+                                                                updateCollection(
+                                                                    collection.id,
+                                                                    {
+                                                                        name: newName,
+                                                                    }
+                                                                )
+                                                            }
+                                                            className="truncate"
+                                                            inputClassName="h-6 text-sm bg-transparent"
+                                                        />
                                                     </div>
                                                 </AccordionTrigger>
                                                 <AlertDialog>
@@ -253,15 +280,15 @@ export function CollectionsSidebar() {
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>
                                                                 {t(
-                                                                    "collections.delete_collection_title"
-                                                                )}
-                                                            </AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                {t(
-                                                                    "collections.delete_collection_description",
+                                                                    "environments.delete_title",
                                                                     {
                                                                         name: collection.name,
                                                                     }
+                                                                )}{" "}
+                                                            </AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                {t(
+                                                                    "collections.delete_request_description"
                                                                 )}
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
@@ -306,98 +333,167 @@ export function CollectionsSidebar() {
                                                 {collection.requests.length >
                                                 0 ? (
                                                     collection.requests.map(
-                                                        (req) => (
-                                                            <div
-                                                                key={req.id}
-                                                                className="flex items-center gap-2 pr-2 rounded-md hover:bg-muted group"
-                                                            >
+                                                        (req) => {
+                                                            const isEditing =
+                                                                editingRequestId ===
+                                                                req.id;
+                                                            return (
                                                                 <div
-                                                                    onClick={() =>
-                                                                        handleRequestClick(
-                                                                            req
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 p-2 cursor-pointer flex-grow"
+                                                                    key={req.id}
+                                                                    className="flex items-center gap-1 pr-2 rounded-md hover:bg-muted group"
                                                                 >
-                                                                    <FileText className="h-4 w-4" />
-                                                                    <span className="text-sm truncate">
-                                                                        {
-                                                                            req.name
-                                                                        }
-                                                                    </span>
-                                                                </div>
-                                                                <AlertDialog>
-                                                                    <AlertDialogTrigger
-                                                                        asChild
+                                                                    <div
+                                                                        onClick={() => {
+                                                                            if (
+                                                                                !isEditing
+                                                                            )
+                                                                                handleRequestClick(
+                                                                                    req
+                                                                                );
+                                                                        }}
+                                                                        className="flex items-center gap-2 p-2 cursor-pointer flex-grow"
                                                                     >
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                                                            onClick={(
-                                                                                e
-                                                                            ) =>
-                                                                                e.stopPropagation()
-                                                                            }
-                                                                        >
-                                                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                                                        </Button>
-                                                                    </AlertDialogTrigger>
-                                                                    <AlertDialogContent>
-                                                                        <AlertDialogHeader>
-                                                                            <AlertDialogTitle>
-                                                                                {t(
-                                                                                    "collections.delete_collection_title"
-                                                                                )}
-                                                                            </AlertDialogTitle>
-                                                                            <AlertDialogDescription>
-                                                                                {t(
-                                                                                    "collections.delete_request_description",
-                                                                                    {
-                                                                                        name: req.name,
-                                                                                    }
-                                                                                )}
-                                                                            </AlertDialogDescription>
-                                                                        </AlertDialogHeader>
-                                                                        <AlertDialogFooter>
-                                                                            <AlertDialogCancel>
-                                                                                {t(
-                                                                                    "common.cancel"
-                                                                                )}
-                                                                            </AlertDialogCancel>
-                                                                            <AlertDialogAction
-                                                                                onClick={async (
+                                                                        <FileText className="h-4 w-4" />
+                                                                        {isEditing ? (
+                                                                            <Input
+                                                                                defaultValue={
+                                                                                    req.name ||
+                                                                                    ""
+                                                                                }
+                                                                                onBlur={(
                                                                                     e
                                                                                 ) => {
-                                                                                    e.preventDefault();
-                                                                                    await deleteRequest(
-                                                                                        req.id
-                                                                                    );
-                                                                                    toast(
-                                                                                        {
-                                                                                            title: t(
-                                                                                                "toasts.request_deleted_title"
-                                                                                            ),
-                                                                                            description:
-                                                                                                t(
-                                                                                                    "toasts.request_deleted_description",
-                                                                                                    {
-                                                                                                        name: req.name,
-                                                                                                    }
-                                                                                                ),
-                                                                                        }
+                                                                                    const newName =
+                                                                                        e.target.value.trim();
+                                                                                    if (
+                                                                                        newName &&
+                                                                                        newName !==
+                                                                                            req.name
+                                                                                    ) {
+                                                                                        updateRequest(
+                                                                                            req.id,
+                                                                                            {
+                                                                                                name: newName,
+                                                                                            }
+                                                                                        );
+                                                                                    }
+                                                                                    setEditingRequestId(
+                                                                                        null
                                                                                     );
                                                                                 }}
+                                                                                onKeyDown={(
+                                                                                    e
+                                                                                ) => {
+                                                                                    if (
+                                                                                        e.key ===
+                                                                                            "Enter" ||
+                                                                                        e.key ===
+                                                                                            "Escape"
+                                                                                    ) {
+                                                                                        e.currentTarget.blur();
+                                                                                    }
+                                                                                }}
+                                                                                autoFocus
+                                                                                onFocus={(
+                                                                                    e
+                                                                                ) =>
+                                                                                    e.target.select()
+                                                                                }
+                                                                                className="h-6 text-sm bg-background"
+                                                                                onClick={(
+                                                                                    e
+                                                                                ) =>
+                                                                                    e.stopPropagation()
+                                                                                }
+                                                                            />
+                                                                        ) : (
+                                                                            <span className="text-sm truncate">
+                                                                                {
+                                                                                    req.name
+                                                                                }
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-6 w-6 opacity-0 group-hover:opacity-100 flex-shrink-0"
+                                                                        onClick={() =>
+                                                                            setEditingRequestId(
+                                                                                req.id
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <FilePenLine className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <AlertDialog>
+                                                                        <AlertDialogTrigger
+                                                                            asChild
+                                                                        >
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="h-6 w-6 opacity-0 group-hover:opacity-100 flex-shrink-0"
                                                                             >
-                                                                                {t(
-                                                                                    "common.delete"
-                                                                                )}
-                                                                            </AlertDialogAction>
-                                                                        </AlertDialogFooter>
-                                                                    </AlertDialogContent>
-                                                                </AlertDialog>
-                                                            </div>
-                                                        )
+                                                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                                                            </Button>
+                                                                        </AlertDialogTrigger>
+                                                                        <AlertDialogContent>
+                                                                            <AlertDialogHeader>
+                                                                                <AlertDialogTitle>
+                                                                                    {t(
+                                                                                        "collections.delete_collection_title",
+                                                                                        {
+                                                                                            name: req.name,
+                                                                                        }
+                                                                                    )}
+                                                                                </AlertDialogTitle>
+                                                                                <AlertDialogDescription>
+                                                                                    {t(
+                                                                                        "collections.delete_request_description"
+                                                                                    )}
+                                                                                </AlertDialogDescription>
+                                                                            </AlertDialogHeader>
+                                                                            <AlertDialogFooter>
+                                                                                <AlertDialogCancel>
+                                                                                    {t(
+                                                                                        "common.cancel"
+                                                                                    )}
+                                                                                </AlertDialogCancel>
+                                                                                <AlertDialogAction
+                                                                                    onClick={async (
+                                                                                        e
+                                                                                    ) => {
+                                                                                        e.preventDefault();
+                                                                                        await deleteRequest(
+                                                                                            req.id
+                                                                                        );
+                                                                                        toast(
+                                                                                            {
+                                                                                                title: t(
+                                                                                                    "toasts.request_deleted_title"
+                                                                                                ),
+                                                                                                description:
+                                                                                                    t(
+                                                                                                        "toasts.request_deleted_description",
+                                                                                                        {
+                                                                                                            name: req.name,
+                                                                                                        }
+                                                                                                    ),
+                                                                                            }
+                                                                                        );
+                                                                                    }}
+                                                                                >
+                                                                                    {t(
+                                                                                        "common.delete"
+                                                                                    )}
+                                                                                </AlertDialogAction>
+                                                                            </AlertDialogFooter>
+                                                                        </AlertDialogContent>
+                                                                    </AlertDialog>
+                                                                </div>
+                                                            );
+                                                        }
                                                     )
                                                 ) : (
                                                     <p className="text-xs text-muted-foreground p-2">
