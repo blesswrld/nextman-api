@@ -9,6 +9,12 @@
     "tabs": {
         "untitled_request": "Новый запрос"
     },
+    "kv_editor": {
+        "param_key": "Параметр",
+        "param_value": "Значение",
+        "header_key": "Заголовок",
+        "header_value": "Значение"
+    },
     "main": {
         "create_request_button": "Создать новый запрос",
         "save_button": "Сохранить",
@@ -51,13 +57,40 @@
         "login_prompt_title": "Войдите, чтобы видеть историю",
         "login_prompt_description": "История запросов доступна только для авторизованных пользователей."
     },
+    "environments": {
+        "no_environment": "Без окружения",
+        "manage_title": "Управление окружениями",
+        "manage_description": "Создавайте, редактируйте и удаляйте ваши окружения и переменные.",
+        "new_placeholder": "Имя нового окружения...",
+        "select_to_edit": "Выберите окружение для редактирования.",
+        "delete_title": "Удалить \"{{name}}\"?",
+        "delete_description": "Это действие нельзя отменить. Окружение и все его переменные будут удалены навсегда.",
+        "variable_name_placeholder": "Имя переменной",
+        "variable_value_placeholder": "Значение переменной",
+        "login_prompt_title": "Войдите для управления окружениями",
+        "login_prompt_description": "Создавайте и управляйте окружениями после входа в систему."
+    },
     "save_dialog": {
         "title": "Сохранить запрос",
         "description": "Сохраните текущий запрос в коллекцию для дальнейшего использования.",
         "name_label": "Имя",
         "collection_label": "Коллекция",
         "select_collection_placeholder": "Выберите коллекцию",
-        "save_button": "Сохранить"
+        "save_button": "Сохранить",
+        "create_collection_first": "Сначала создайте коллекцию."
+    },
+    "code_generator": {
+        "button_text": "Код",
+        "dialog_title": "Сгенерировать сниппет кода",
+        "dialog_description": "Скопируйте сниппет кода для текущей конфигурации запроса.",
+        "curl_tab": "cURL",
+        "fetch_tab": "JavaScript (Fetch)"
+    },
+    "theme_switcher": {
+        "toggle_theme": "Переключить тему",
+        "light": "Светлая",
+        "dark": "Темная",
+        "system": "Системная"
     },
     "common": {
         "cancel": "Отмена",
@@ -66,5 +99,19 @@
     "language_switcher": {
         "english": "Английский",
         "russian": "Русский"
+    },
+    "toasts": {
+        "validation_error_title": "Ошибка валидации",
+        "validation_error_description": "Пожалуйста, укажите имя запроса и выберите коллекцию.",
+        "invalid_json_title": "Неверный JSON",
+        "invalid_json_description": "Тело запроса содержит неверный JSON и не может быть сохранено.",
+        "request_saved_title": "Запрос сохранен",
+        "request_saved_description": "Запрос «{{name}}» был успешно сохранен.",
+        "collection_created_title": "Коллекция создана",
+        "collection_created_description": "Коллекция «{{name}}» была создана.",
+        "request_deleted_title": "Запрос удален",
+        "request_deleted_description": "Запрос «{{name}}» был удален.",
+        "collection_deleted_title": "Коллекция удалена",
+        "collection_deleted_description": "Коллекция «{{name}}» была удалена."
     }
 }

@@ -23,7 +23,6 @@ import { X, Plus } from "lucide-react";
 import { HistorySidebar } from "@/components/history-sidebar";
 import { useEffect, useState } from "react";
 import { ResponseHeaders } from "@/components/response-headers";
-import { EditableTab } from "@/components/editable-tab";
 import { AuthButton } from "@/components/auth-button";
 import { CollectionsSidebar } from "@/components/collections-sidebar";
 import { SaveRequestDialog } from "@/components/save-request-dialog";
@@ -33,6 +32,9 @@ import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { EnvironmentManager } from "@/components/environment-manager";
+import { CodeGenerationDialog } from "@/components/code-generation-dialog";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -47,7 +49,7 @@ export default function HomePage() {
         init, // Действие для инициализации
     } = useTabsStore();
 
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
 
     const [user, setUser] = useState<User | null>(null);
     const [editingTabId, setEditingTabId] = useState<string | null>(null);
@@ -104,6 +106,9 @@ export default function HomePage() {
                 <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                     <h1 className="text-xl font-bold">{t("header.title")}</h1>
                     <div className="flex items-center gap-2">
+                        <ThemeToggle />
+                        <CodeGenerationDialog />
+                        <EnvironmentManager user={user} />
                         <LanguageSwitcher />
                         <HistorySidebar user={user} />
                         <AuthButton />
@@ -124,6 +129,9 @@ export default function HomePage() {
             <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                 <h1 className="text-xl font-bold">{t("header.title")}</h1>
                 <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <CodeGenerationDialog />
+                    <EnvironmentManager user={user} />
                     <LanguageSwitcher />
                     <HistorySidebar user={user} />
                     <AuthButton />
@@ -343,10 +351,16 @@ export default function HomePage() {
                                         >
                                             <KeyValueEditor
                                                 pairs={activeTab.queryParams}
+                                                // @ts-ignore
                                                 setPairs={
                                                     handleQueryParamsChange
                                                 }
-                                                placeholderKey="Parameter"
+                                                placeholderKey={t(
+                                                    "kv_editor.param_key"
+                                                )}
+                                                placeholderValue={t(
+                                                    "kv_editor.param_value"
+                                                )}
                                             />
                                         </TabsContent>
                                         <TabsContent
@@ -355,8 +369,14 @@ export default function HomePage() {
                                         >
                                             <KeyValueEditor
                                                 pairs={activeTab.headers}
+                                                // @ts-ignore
                                                 setPairs={handleHeadersChange}
-                                                placeholderKey="Header"
+                                                placeholderKey={t(
+                                                    "kv_editor.header_key"
+                                                )}
+                                                placeholderValue={t(
+                                                    "kv_editor.header_value"
+                                                )}
                                             />
                                         </TabsContent>
                                         <TabsContent

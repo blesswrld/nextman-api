@@ -9,6 +9,12 @@
     "tabs": {
         "untitled_request": "Untitled Request"
     },
+    "kv_editor": {
+        "param_key": "Parameter",
+        "param_value": "Value",
+        "header_key": "Header",
+        "header_value": "Value"
+    },
     "main": {
         "create_request_button": "Create a new request",
         "save_button": "Save",
@@ -51,13 +57,40 @@
         "login_prompt_title": "Login to see History",
         "login_prompt_description": "Request history is only available for logged in users."
     },
+    "environments": {
+        "no_environment": "No Environment",
+        "manage_title": "Manage Environments",
+        "manage_description": "Create, edit, and delete your environments and variables.",
+        "new_placeholder": "New environment name...",
+        "select_to_edit": "Select an environment to edit.",
+        "delete_title": "Delete \"{{name}}\"?",
+        "delete_description": "This action cannot be undone. This will permanently delete the environment and all its variables.",
+        "variable_name_placeholder": "Variable name",
+        "variable_value_placeholder": "Variable value",
+        "login_prompt_title": "Login to Manage Environments",
+        "login_prompt_description": "Create and manage your environments after logging in."
+    },
     "save_dialog": {
         "title": "Save Request",
         "description": "Save the current request to a collection for later use.",
         "name_label": "Name",
         "collection_label": "Collection",
         "select_collection_placeholder": "Select a collection",
-        "save_button": "Save"
+        "save_button": "Save",
+        "create_collection_first": "Create a collection first."
+    },
+    "code_generator": {
+        "button_text": "Code",
+        "dialog_title": "Generate Code Snippet",
+        "dialog_description": "Copy the code snippet for your current request configuration.",
+        "curl_tab": "cURL",
+        "fetch_tab": "JavaScript (Fetch)"
+    },
+    "theme_switcher": {
+        "toggle_theme": "Toggle theme",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
     },
     "common": {
         "cancel": "Cancel",
@@ -66,5 +99,19 @@
     "language_switcher": {
         "english": "English",
         "russian": "Russian"
+    },
+    "toasts": {
+        "validation_error_title": "Validation Error",
+        "validation_error_description": "Please provide a request name and select a collection.",
+        "invalid_json_title": "Invalid JSON",
+        "invalid_json_description": "The request body contains invalid JSON and cannot be saved.",
+        "request_saved_title": "Request Saved",
+        "request_saved_description": "Request \"{{name}}\" has been saved successfully.",
+        "collection_created_title": "Collection Created",
+        "collection_created_description": "Collection \"{{name}}\" has been created.",
+        "request_deleted_title": "Request Deleted",
+        "request_deleted_description": "Request \"{{name}}\" was deleted.",
+        "collection_deleted_title": "Collection Deleted",
+        "collection_deleted_description": "Collection \"{{name}}\" was deleted."
     }
 }

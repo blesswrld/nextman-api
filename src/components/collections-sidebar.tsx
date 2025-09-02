@@ -39,6 +39,7 @@ import { KeyValuePair } from "./key-value-editor";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
 
 export function CollectionsSidebar() {
     const {
@@ -54,7 +55,9 @@ export function CollectionsSidebar() {
     const [newCollectionName, setNewCollectionName] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
     const [user, setUser] = useState<User | null>(null);
+
     const { t } = useTranslation();
+    const { toast } = useToast();
 
     useEffect(() => {
         const supabase = createClient();
@@ -99,7 +102,17 @@ export function CollectionsSidebar() {
 
     const handleCreateCollection = async () => {
         if (newCollectionName.trim()) {
-            await createCollection(newCollectionName.trim());
+            const name = newCollectionName.trim(); // Сохраняем имя в переменную
+            await createCollection(name);
+
+            toast({
+                title: t("toasts.collection_created_title"),
+                // Передаем переменную `name` в перевод
+                description: t("toasts.collection_created_description", {
+                    name: name,
+                }),
+            });
+
             setNewCollectionName("");
             setDialogOpen(false);
         }
@@ -159,14 +172,14 @@ export function CollectionsSidebar() {
                             <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label
-                                        htmlFor="name"
+                                        htmlFor="new-collection-name"
                                         className="text-right"
                                     >
                                         {t("collections.name_label")}
                                     </Label>
                                     <Input
                                         ref={inputRef}
-                                        id="name"
+                                        id="new-collection-name"
                                         value={newCollectionName}
                                         onChange={(e) =>
                                             setNewCollectionName(e.target.value)
@@ -266,6 +279,18 @@ export function CollectionsSidebar() {
                                                                     await deleteCollection(
                                                                         collection.id
                                                                     );
+                                                                    toast({
+                                                                        title: t(
+                                                                            "toasts.collection_deleted_title"
+                                                                        ),
+                                                                        description:
+                                                                            t(
+                                                                                "toasts.collection_deleted_description",
+                                                                                {
+                                                                                    name: collection.name,
+                                                                                }
+                                                                            ),
+                                                                    });
                                                                 }}
                                                             >
                                                                 {t(
@@ -336,7 +361,9 @@ export function CollectionsSidebar() {
                                                                         </AlertDialogHeader>
                                                                         <AlertDialogFooter>
                                                                             <AlertDialogCancel>
-                                                                                Cancel
+                                                                                {t(
+                                                                                    "common.cancel"
+                                                                                )}
                                                                             </AlertDialogCancel>
                                                                             <AlertDialogAction
                                                                                 onClick={async (
@@ -346,9 +373,25 @@ export function CollectionsSidebar() {
                                                                                     await deleteRequest(
                                                                                         req.id
                                                                                     );
+                                                                                    toast(
+                                                                                        {
+                                                                                            title: t(
+                                                                                                "toasts.request_deleted_title"
+                                                                                            ),
+                                                                                            description:
+                                                                                                t(
+                                                                                                    "toasts.request_deleted_description",
+                                                                                                    {
+                                                                                                        name: req.name,
+                                                                                                    }
+                                                                                                ),
+                                                                                        }
+                                                                                    );
                                                                                 }}
                                                                             >
-                                                                                Delete
+                                                                                {t(
+                                                                                    "common.delete"
+                                                                                )}
                                                                             </AlertDialogAction>
                                                                         </AlertDialogFooter>
                                                                     </AlertDialogContent>
