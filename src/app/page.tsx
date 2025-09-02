@@ -14,11 +14,10 @@ import {
     ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CodeEditor } from "@/components/editor";
 import { KeyValueEditor, KeyValuePair } from "@/components/key-value-editor";
-import { useTabsStore } from "@/store/tabs";
+import { useTabsStore, ResponseData } from "@/store/tabs";
 import { cn } from "@/lib/utils";
-import { X, Plus } from "lucide-react";
+import { X, Plus, ExternalLink } from "lucide-react";
 import { HistorySidebar } from "@/components/history-sidebar";
 import { useEffect, useState } from "react";
 import { ResponseHeaders } from "@/components/response-headers";
@@ -36,6 +35,155 @@ import { CodeGenerationDialog } from "@/components/code-generation-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { VariableInput } from "@/components/variable-input";
 import { Input } from "@/components/ui/input";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// --- ДИНАМИЧЕСКИЙ ИМПОРТ РЕДАКТОРА ---
+const CodeEditor = dynamic(
+    () => import("@/components/editor").then((mod) => mod.CodeEditor),
+    {
+        ssr: false, // <-- Говорим Next.js НЕ рендерить этот компонент на сервере
+        loading: () => <Skeleton className="w-full h-full" />, // Показываем скелетон, пока редактор грузится
+    }
+);
+
+// --- КОМПОНЕНТ ДЛЯ ПРЕВЬЮ ---
+function ResponsePreview({ response }: { response: ResponseData }) {
+    const { t } = useTranslation();
+
+    if (!response.contentType) {
+        return (
+            <div className="p-4 text-muted-foreground">
+                {t("previews.no_preview_available")}
+            </div>
+        );
+    }
+
+    const base64ToBlobUrl = (base64: string, contentType: string) => {
+        try {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: contentType });
+            return URL.createObjectURL(blob);
+        } catch (e) {
+            console.error("Failed to decode Base64 string", e);
+            return null;
+        }
+    };
+
+    // Helper-компонент для рендера превью с кнопкой
+    const PreviewContainer = ({
+        children,
+        url,
+    }: {
+        children: React.ReactNode;
+        url: string | null;
+    }) => {
+        if (!url) return null;
+        return (
+            <div className="relative w-full h-full">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 z-10 h-7 w-7 bg-background/50 hover:bg-background/80"
+                    onClick={() => window.open(url, "_blank")}
+                    title={t("previews.open_in_new_tab")}
+                >
+                    <ExternalLink className="h-4 w-4" />
+                </Button>
+                {children}
+            </div>
+        );
+    };
+
+    // HTML
+    if (response.contentType.includes("text/html") && !response.isBase64) {
+        const htmlBlob = new Blob([response.rawBody], { type: "text/html" });
+        const htmlUrl = URL.createObjectURL(htmlBlob);
+        return (
+            <PreviewContainer url={htmlUrl}>
+                <iframe
+                    src={htmlUrl}
+                    className="w-full h-full border-0"
+                    sandbox=""
+                />
+            </PreviewContainer>
+        );
+    }
+
+    // SVG (как текст)
+    if (response.contentType.includes("image/svg+xml") && !response.isBase64) {
+        const svgBlob = new Blob([response.rawBody], { type: "image/svg+xml" });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        return (
+            <PreviewContainer url={svgUrl}>
+                <div className="w-full h-96 flex items-center justify-center p-4 bg-white">
+                    <img
+                        src={svgUrl}
+                        alt="SVG Preview"
+                        className="max-w-full max-h-full object-contain"
+                    />
+                </div>
+            </PreviewContainer>
+        );
+    }
+
+    // Бинарные данные из Base64
+    if (response.isBase64) {
+        const url = base64ToBlobUrl(response.rawBody, response.contentType);
+        if (!url)
+            return (
+                <div className="p-4 text-destructive">
+                    {t("previews.failed_to_load_base64")}
+                </div>
+            );
+
+        if (response.contentType.startsWith("image/")) {
+            return (
+                <PreviewContainer url={url}>
+                    <div className="w-full h-96 flex items-center justify-center p-4 bg-muted">
+                        <img
+                            src={url}
+                            alt="Response preview"
+                            className="max-w-full max-h-full object-contain"
+                        />
+                    </div>
+                </PreviewContainer>
+            );
+        }
+        if (response.contentType.includes("application/pdf")) {
+            return (
+                <PreviewContainer url={url}>
+                    <iframe src={url} className="w-full h-96 border-0" />
+                </PreviewContainer>
+            );
+        }
+    }
+
+    // Простые текстовые форматы
+    if (
+        response.contentType.includes("text/") ||
+        response.contentType.includes("application/xml")
+    ) {
+        return (
+            <pre className="p-4 text-sm whitespace-pre-wrap overflow-auto h-full">
+                {response.rawBody}
+            </pre>
+        );
+    }
+
+    return (
+        <div className="p-4 text-muted-foreground">
+            {t("previews.unsupported_preview", {
+                contentType: response.contentType,
+            })}
+        </div>
+    );
+}
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -124,6 +272,16 @@ export default function HomePage() {
             </div>
         );
     }
+
+    // --- ЛОГИКА ДЛЯ ОПРЕДЕЛЕНИЯ, ПОКАЗЫВАТЬ ЛИ ПРЕВЬЮ ---
+    const response = activeTab.response;
+    const showPreviewTab =
+        response?.contentType &&
+        (response.contentType.includes("text/html") ||
+            response.contentType.startsWith("image/") ||
+            response.contentType.includes("application/pdf") ||
+            response.contentType.includes("application/xml") ||
+            response.contentType.includes("image/svg+xml"));
 
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
@@ -447,20 +605,32 @@ export default function HomePage() {
 
                                     {/* Анимируем переключение между состоянием с ответом и заглушкой */}
                                     <AnimatePresence mode="wait">
-                                        {activeTab.response ? (
+                                        {response ? (
                                             <motion.div
                                                 key="response-data"
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
                                                 exit={{ opacity: 0 }}
                                                 transition={{ duration: 0.2 }}
-                                                className="flex-grow flex flex-col min-h-0" // min-h-0 важен для правильной работы flex
+                                                className="flex-grow flex flex-col min-h-0"
                                             >
+                                                {/* Используем defaultValue, чтобы таб не сбрасывался при ререндере */}
                                                 <Tabs
-                                                    defaultValue="body"
+                                                    defaultValue={
+                                                        showPreviewTab
+                                                            ? "preview"
+                                                            : "body"
+                                                    }
                                                     className="flex-grow flex flex-col"
                                                 >
                                                     <TabsList>
+                                                        {showPreviewTab && (
+                                                            <TabsTrigger value="preview">
+                                                                {t(
+                                                                    "main.response_preview_tab"
+                                                                )}
+                                                            </TabsTrigger>
+                                                        )}
                                                         <TabsTrigger value="body">
                                                             {t(
                                                                 "main.response_body_tab"
@@ -472,22 +642,39 @@ export default function HomePage() {
                                                             )}
                                                         </TabsTrigger>
                                                     </TabsList>
+
+                                                    {showPreviewTab && (
+                                                        <TabsContent
+                                                            value="preview"
+                                                            className="mt-4 flex-grow bg-white rounded-md"
+                                                        >
+                                                            <ResponsePreview
+                                                                response={
+                                                                    response
+                                                                }
+                                                            />
+                                                        </TabsContent>
+                                                    )}
+
                                                     <TabsContent
                                                         value="body"
                                                         className="mt-4 flex-grow"
                                                     >
                                                         <CodeEditor
                                                             value={
-                                                                activeTab
-                                                                    .response
-                                                                    .body
+                                                                response.body
                                                             }
                                                             readOnly={true}
                                                             key={
                                                                 activeTab.id +
-                                                                activeTab
-                                                                    .response
-                                                                    .body
+                                                                response.body
+                                                            }
+                                                            language={
+                                                                response.contentType?.includes(
+                                                                    "html"
+                                                                )
+                                                                    ? "html"
+                                                                    : "json"
                                                             }
                                                         />
                                                     </TabsContent>
@@ -497,9 +684,7 @@ export default function HomePage() {
                                                     >
                                                         <ResponseHeaders
                                                             headers={
-                                                                activeTab
-                                                                    .response
-                                                                    .headers
+                                                                response.headers
                                                             }
                                                         />
                                                     </TabsContent>

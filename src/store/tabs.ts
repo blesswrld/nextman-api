@@ -5,7 +5,19 @@ import { createClient } from "@/lib/supabase/client";
 import i18n from "../../i18n"; // <-- ИМПОРТ
 import { useEnvironmentsStore } from "./environments";
 
-// Описываем тип одной вкладки
+// Описываем более подробный формат объекта ответа
+export interface ResponseData {
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    body: string; // Тело ответа, отформатированное для вкладки "Body"
+    rawBody: string; // "Сырое", оригинальное тело ответа для вкладки "Preview"
+    contentType: string | null; // Заголовок Content-Type для определения, как рендерить превью
+    time: number; // Время выполнения запроса в мс
+    isBase64: boolean;
+}
+
+// Описываем тип одной вкладки, теперь используем новый тип ResponseData
 export interface RequestTab {
     id: string;
     name: string;
@@ -31,14 +43,6 @@ interface TabsState {
     sendRequest: () => Promise<void>;
 
     init?: () => void;
-}
-
-export interface ResponseData {
-    status: number;
-    statusText: string;
-    headers: Record<string, string>;
-    body: string; // Тело ответа уже отформатировано
-    time: number; // Время выполнения в мс
 }
 
 // Функция для создания новой пустой вкладки
@@ -96,6 +100,7 @@ const applyEnvironmentVariables = (text: string): string => {
     return newText;
 };
 
+// --- ХРАНИЛИЩЕ ZUSTAND ---
 export const useTabsStore = create<TabsState>((set, get) => ({
     tabs: [createNewTab()],
     activeTabId: null,
@@ -203,26 +208,43 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 }),
             });
 
-            const endTime = performance.now(); // Засекаем время окончания
+            const endTime = performance.now();
             const requestTime = Math.round(endTime - startTime);
-
-            const data = await res.json();
+            const dataFromProxy = await res.json();
 
             if (!res.ok) {
                 // Если прокси вернул ошибку, создаем "фейковый" объект ответа
                 throw {
                     response: {
-                        status: data.status || 500,
-                        statusText: data.statusText || "Proxy Error",
+                        status: dataFromProxy.status || 500,
+                        statusText: dataFromProxy.statusText || "Proxy Error",
                         headers: {},
-                        body: JSON.stringify(data, null, 2),
+                        body: JSON.stringify(dataFromProxy, null, 2),
+                        rawBody: JSON.stringify(dataFromProxy),
+                        contentType: "application/json",
                         time: requestTime,
+                        isBase64: false, // Ошибки не в Base64
                     },
-                    message: data.error || "Proxy request failed",
+                    message: dataFromProxy.error || "Proxy request failed",
                 };
             }
 
-            // 1. Определяем, какое имя использовать для истории и обновления вкладки
+            const contentType = dataFromProxy.headers["content-type"] || null;
+            const rawBody = dataFromProxy.body;
+            let formattedBody = rawBody;
+
+            // Форматируем JSON только если это действительно JSON, иначе оставляем как есть
+            if (contentType && contentType.includes("application/json")) {
+                try {
+                    formattedBody = JSON.stringify(
+                        JSON.parse(rawBody),
+                        null,
+                        2
+                    );
+                } catch (e) {}
+            }
+
+            // Определяем, какое имя использовать для истории и обновления вкладки
             let finalTabName = activeTab.name;
             if (activeTab.name === "tabs.untitled_request") {
                 const cleanUrl = activeTab.url.replace(
@@ -234,7 +256,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                     .slice(0, 25)}...`;
             }
 
-            // 2. Сохраняем в историю с правильным (возможно, новым) именем, только если пользователь авторизован
+            // Сохраняем в историю с правильным именем
             const supabase = createClient();
             const {
                 data: { user },
@@ -248,18 +270,15 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 });
             }
 
-            // 3. Обновляем вкладку, включая ответ и новое имя
-            let formattedBody = data.body;
-            try {
-                formattedBody = JSON.stringify(JSON.parse(data.body), null, 2);
-            } catch (e) {}
-
             const responseData: ResponseData = {
-                status: data.status,
-                statusText: data.statusText,
-                headers: data.headers,
+                status: dataFromProxy.status,
+                statusText: dataFromProxy.statusText,
+                headers: dataFromProxy.headers,
                 body: formattedBody,
+                rawBody: rawBody,
+                contentType: contentType,
                 time: requestTime,
+                isBase64: dataFromProxy.isBase64,
             };
 
             updateActiveTab({
@@ -287,7 +306,12 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                     null,
                     2
                 ),
+                rawBody: JSON.stringify({
+                    error: error.message || "An unknown error occurred",
+                }),
+                contentType: "application/json",
                 time: requestTime,
+                isBase64: false, // Ошибки не в Base64
             };
             updateActiveTab({ response: errorResponse, isDirty: false });
         } finally {

@@ -5,6 +5,7 @@ import enTranslation from "./public/locales/en/translation.json";
 import ruTranslation from "./public/locales/ru/translation.json";
 
 i18n.use(initReactI18next).init({
+    // debug: true,
     resources: {
         en: {
             translation: enTranslation,
