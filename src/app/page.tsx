@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -35,6 +34,8 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { EnvironmentManager } from "@/components/environment-manager";
 import { CodeGenerationDialog } from "@/components/code-generation-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { VariableInput } from "@/components/variable-input";
+import { Input } from "@/components/ui/input";
 
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
@@ -194,33 +195,33 @@ export default function HomePage() {
                                 {isEditing ? (
                                     <Input
                                         type="text"
-                                        value={
+                                        defaultValue={
                                             tab.name === "tabs.untitled_request"
-                                                ? displayName
+                                                ? ""
                                                 : tab.name
                                         }
-                                        onChange={(e) =>
+                                        onBlur={(e) => {
+                                            const newName =
+                                                e.target.value.trim();
                                             updateActiveTab({
-                                                name: e.target.value,
-                                            })
-                                        }
-                                        onBlur={() => setEditingTabId(null)}
+                                                name:
+                                                    newName ||
+                                                    "tabs.untitled_request",
+                                            });
+                                            setEditingTabId(null);
+                                        }}
                                         onKeyDown={(e) => {
                                             if (
                                                 e.key === "Enter" ||
                                                 e.key === "Escape"
                                             ) {
-                                                if (tab.name.trim() === "") {
-                                                    updateActiveTab({
-                                                        name: "tabs.untitled_request",
-                                                    });
-                                                }
-                                                setEditingTabId(null);
+                                                e.currentTarget.blur();
                                             }
                                         }}
                                         autoFocus
                                         onFocus={(e) => e.target.select()}
                                         className="h-6 text-xs ml-2 w-32 bg-background"
+                                        onClick={(e) => e.stopPropagation()}
                                     />
                                 ) : (
                                     <span
@@ -309,7 +310,7 @@ export default function HomePage() {
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        <Input
+                                        <VariableInput
                                             type="text"
                                             value={activeTab.url}
                                             onChange={(e) =>

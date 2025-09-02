@@ -44,7 +44,7 @@
         "name_label": "Имя",
         "delete_collection_title": "Вы уверены?",
         "delete_collection_description": "Это навсегда удалит коллекцию \"{{name}}\" и все запросы внутри нее.",
-        "delete_request_description": "Это навсегда удалит запрос \"{{name}}\".",
+        "delete_request_description": "Это действие нельзя отменить. Запрос будет удален навсегда.",
         "empty_collection": "В этой коллекции нет запросов."
     },
     "history": {
@@ -77,14 +77,16 @@
         "collection_label": "Коллекция",
         "select_collection_placeholder": "Выберите коллекцию",
         "save_button": "Сохранить",
-        "create_collection_first": "Сначала создайте коллекцию."
+        "create_collection_first": "Сначала создайте коллекцию.",
+        "collection_full_warning": "Эта коллекция заполнена."
     },
     "code_generator": {
         "button_text": "Код",
         "dialog_title": "Сгенерировать сниппет кода",
         "dialog_description": "Скопируйте сниппет кода для текущей конфигурации запроса.",
         "curl_tab": "cURL",
-        "fetch_tab": "JavaScript (Fetch)"
+        "fetch_tab": "JavaScript (Fetch)",
+        "axios_tab": "JavaScript (Axios)"
     },
     "theme_switcher": {
         "toggle_theme": "Переключить тему",
@@ -112,6 +114,8 @@
         "request_deleted_title": "Запрос удален",
         "request_deleted_description": "Запрос «{{name}}» был удален.",
         "collection_deleted_title": "Коллекция удалена",
-        "collection_deleted_description": "Коллекция «{{name}}» была удалена."
+        "collection_deleted_description": "Коллекция «{{name}}» была удалена.",
+        "collection_full_title": "Коллекция заполнена",
+        "collection_full_description": "Коллекция может содержать максимум {{max}} запросов."
     }
 }

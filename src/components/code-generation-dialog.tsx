@@ -16,8 +16,12 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTabsStore } from "@/store/tabs";
 import { useEnvironmentsStore } from "@/store/environments";
-import { generateCurl, generateFetch } from "@/lib/code-generators";
 import { useTranslation } from "react-i18next";
+import {
+    generateCurl,
+    generateFetch,
+    generateAxios,
+} from "@/lib/code-generators";
 
 export function CodeGenerationDialog() {
     const { t } = useTranslation();
@@ -29,8 +33,14 @@ export function CodeGenerationDialog() {
         (state) => state.activeEnvironment
     );
 
-    const [generatedCode, setGeneratedCode] = useState({ curl: "", fetch: "" });
-    const [copied, setCopied] = useState<"curl" | "fetch" | null>(null);
+    const [generatedCode, setGeneratedCode] = useState({
+        curl: "",
+        fetch: "",
+        axios: "",
+    }); // Добавляем axios
+    const [copied, setCopied] = useState<"curl" | "fetch" | "axios" | null>(
+        null
+    );
 
     // Helper-функция для подстановки переменных
     const applyVariables = (text: string): string => {
@@ -77,10 +87,11 @@ export function CodeGenerationDialog() {
         setGeneratedCode({
             curl: generateCurl(input),
             fetch: generateFetch(input),
+            axios: generateAxios(input), // Генерируем axios
         });
     };
 
-    const handleCopy = (text: string, type: "curl" | "fetch") => {
+    const handleCopy = (text: string, type: "curl" | "fetch" | "axios") => {
         navigator.clipboard.writeText(text);
         setCopied(type); // Устанавливаем, что скопировали
         // Через 1.5 секунды сбрасываем состояние
@@ -114,6 +125,9 @@ export function CodeGenerationDialog() {
                         <TabsTrigger value="fetch">
                             {t("code_generator.fetch_tab")}
                         </TabsTrigger>
+                        <TabsTrigger value="axios">
+                            {t("code_generator.axios_tab")}
+                        </TabsTrigger>
                     </TabsList>
 
                     {/* Контент для таба cURL */}
@@ -130,7 +144,7 @@ export function CodeGenerationDialog() {
                             {copied === "curl" ? (
                                 <Check className="h-4 w-4 text-green-500" />
                             ) : (
-                                <Copy className="h-4 w-4" />
+                                <Copy className="h-4 w-4 text-muted-foreground" />
                             )}
                         </Button>
                         <SyntaxHighlighter
@@ -160,7 +174,7 @@ export function CodeGenerationDialog() {
                             {copied === "fetch" ? (
                                 <Check className="h-4 w-4 text-green-500" />
                             ) : (
-                                <Copy className="h-4 w-4" />
+                                <Copy className="h-4 w-4 text-muted-foreground" />
                             )}
                         </Button>
                         <SyntaxHighlighter
@@ -174,6 +188,36 @@ export function CodeGenerationDialog() {
                             wrapLongLines={true}
                         >
                             {generatedCode.fetch}
+                        </SyntaxHighlighter>
+                    </TabsContent>
+
+                    {/* Контент для таба Axios */}
+                    <TabsContent value="axios" className="mt-2 relative">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 h-7 w-7"
+                            onClick={() =>
+                                handleCopy(generatedCode.axios, "axios")
+                            }
+                        >
+                            {copied === "axios" ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                            ) : (
+                                <Copy className="h-4 w-4 text-muted-foreground" />
+                            )}
+                        </Button>
+                        <SyntaxHighlighter
+                            language="javascript"
+                            style={vscDarkPlus}
+                            customStyle={{
+                                margin: 0,
+                                borderRadius: "var(--radius)",
+                                padding: "1rem",
+                            }}
+                            wrapLongLines={true}
+                        >
+                            {generatedCode.axios}
                         </SyntaxHighlighter>
                     </TabsContent>
                 </Tabs>
