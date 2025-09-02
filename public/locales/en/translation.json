@@ -28,8 +28,16 @@
         "time_label": "Time",
         "response_body_tab": "Body",
         "response_headers_tab": "Headers",
+        "response_preview_tab": "Preview",
         "response_waiting": "Waiting for response...",
         "response_placeholder": "Send a request to see the response here"
+    },
+    "previews": {
+        "no_preview_available": "No preview available for this content type.",
+        "unsupported_preview": "Preview for {{contentType}} is not supported yet.",
+        "failed_to_load": "Failed to load preview.",
+        "failed_to_load_base64": "Failed to load preview from Base64 data.",
+        "open_in_new_tab": "Open in new tab"
     },
     "collections": {
         "title": "Collections",

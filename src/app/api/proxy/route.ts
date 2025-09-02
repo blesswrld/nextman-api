@@ -37,22 +37,43 @@ export async function POST(request: Request) {
         // Делаем реальный запрос
         const apiResponse = await fetch(url, options);
 
-        // Получаем тело ответа
-        const responseBody = await apiResponse.text();
-
-        // Получаем заголовки ответа и преобразуем их в простой объект
+        // Сначала получаем заголовки ответа, чтобы узнать тип контента
         const responseHeaders: { [key: string]: string } = {};
         apiResponse.headers.forEach((value, key) => {
             responseHeaders[key] = value;
         });
+        const contentType = responseHeaders["content-type"] || "";
 
-        // Отправляем все обратно на наш фронтенд
+        let responseBody: any;
+        let isBase64 = false; // Флаг, который мы отправим на клиент
+
+        // Проверяем, является ли контент текстовым (JSON, HTML, XML, SVG, и т.д.)
+        const isTextContent =
+            contentType.includes("application/json") ||
+            contentType.includes("text/") ||
+            contentType.includes("application/xml") ||
+            contentType.includes("application/svg+xml");
+
+        if (isTextContent) {
+            // Если это текст, просто читаем его как текст
+            responseBody = await apiResponse.text();
+        } else {
+            // Для всех остальных типов (изображения, pdf, и т.д.) считаем их бинарными
+            isBase64 = true;
+            // Получаем данные как ArrayBuffer
+            const buffer = await apiResponse.arrayBuffer();
+            // Кодируем в Base64, чтобы безопасно передать через JSON
+            responseBody = Buffer.from(buffer).toString("base64");
+        }
+
+        // Отправляем все обратно на наш фронтенд, включая новый флаг isBase64
         return NextResponse.json(
             {
                 status: apiResponse.status,
                 statusText: apiResponse.statusText,
                 headers: responseHeaders,
                 body: responseBody,
+                isBase64: isBase64,
             },
             { status: 200 }
         );
