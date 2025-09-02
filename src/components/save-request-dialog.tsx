@@ -23,6 +23,7 @@ import { useCollectionsStore } from "@/store/collections";
 import { useTabsStore } from "@/store/tabs";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
 
 export function SaveRequestDialog() {
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -37,11 +38,18 @@ export function SaveRequestDialog() {
     );
 
     const { t } = useTranslation();
+    const { toast } = useToast();
 
     // Функция для сохранения запроса
     const handleSave = async () => {
-        if (!activeTab || !requestName.trim() || !selectedCollection) {
-            alert("Please provide a request name and select a collection.");
+        const finalRequestName = requestName.trim();
+
+        if (!activeTab || !finalRequestName || !selectedCollection) {
+            toast({
+                title: t("toasts.validation_error_title"),
+                description: t("toasts.validation_error_description"),
+                variant: "destructive",
+            });
             return;
         }
 
@@ -51,12 +59,17 @@ export function SaveRequestDialog() {
                 parsedBody = JSON.parse(activeTab.body);
             }
         } catch (error) {
-            alert("Cannot save request: Body contains invalid JSON.");
+            toast({
+                title: t("toasts.invalid_json_title"),
+                description: t("toasts.invalid_json_description"),
+                variant: "destructive",
+            });
+
             return;
         }
 
         const requestToSave = {
-            name: requestName.trim(),
+            name: finalRequestName,
             method: activeTab.method,
             url: activeTab.url,
             body: parsedBody,
@@ -67,15 +80,25 @@ export function SaveRequestDialog() {
 
         // @ts-ignore
         await saveRequest(selectedCollection, requestToSave);
+
+        toast({
+            title: t("toasts.request_saved_title"),
+            description: t("toasts.request_saved_description", {
+                name: finalRequestName,
+            }),
+        });
+
         setDialogOpen(false);
     };
 
     const handleOpenChange = (open: boolean) => {
         if (open && activeTab) {
-            // Предзаполняем имя запроса именем вкладки
-            setRequestName(
-                activeTab.name !== "Untitled Request" ? activeTab.name : ""
-            );
+            // Предзаполняем имя запроса именем вкладки, если оно не стандартное
+            const initialName =
+                activeTab.name === "tabs.untitled_request"
+                    ? ""
+                    : activeTab.name;
+            setRequestName(initialName);
         }
         setDialogOpen(open);
     };
@@ -94,40 +117,56 @@ export function SaveRequestDialog() {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
+                        <Label htmlFor="request-name" className="text-right">
                             {t("save_dialog.name_label")}
                         </Label>
                         <Input
-                            id="name"
+                            id="request-name"
                             value={requestName}
                             onChange={(e) => setRequestName(e.target.value)}
                             className="col-span-3"
                         />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="collection" className="text-right">
+                        <Label
+                            htmlFor="collection-select"
+                            className="text-right"
+                        >
                             {t("save_dialog.collection_label")}
                         </Label>
-                        <Select onValueChange={setSelectedCollection}>
-                            <SelectTrigger className="col-span-3">
-                                <SelectValue
-                                    placeholder={t(
-                                        "save_dialog.select_collection_placeholder"
-                                    )}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {collections.map((c) => (
-                                    <SelectItem key={c.id} value={c.id}>
-                                        {c.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        {collections.length > 0 ? (
+                            <Select onValueChange={setSelectedCollection}>
+                                <SelectTrigger
+                                    id="collection-select"
+                                    className="col-span-3"
+                                >
+                                    <SelectValue
+                                        placeholder={t(
+                                            "save_dialog.select_collection_placeholder"
+                                        )}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {collections.map((c) => (
+                                        <SelectItem key={c.id} value={c.id}>
+                                            {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <div className="col-span-3 text-sm text-muted-foreground p-2">
+                                {t("save_dialog.create_collection_first")}
+                            </div>
+                        )}
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button type="submit" onClick={handleSave}>
+                    <Button
+                        type="submit"
+                        onClick={handleSave}
+                        disabled={collections.length === 0}
+                    >
                         {t("save_dialog.save_button")}
                     </Button>
                 </DialogFooter>

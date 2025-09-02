@@ -3,6 +3,7 @@ import { KeyValuePair } from "@/components/key-value-editor";
 import { addHistoryItem } from "@/lib/history-db";
 import { createClient } from "@/lib/supabase/client";
 import i18n from "../../i18n"; // <-- ИМПОРТ
+import { useEnvironmentsStore } from "./environments";
 
 // Описываем тип одной вкладки
 export interface RequestTab {
@@ -80,6 +81,21 @@ const buildHeadersObject = (headers: KeyValuePair[]) => {
     return headersObj;
 };
 
+// Функция для подстановки переменных окружения
+const applyEnvironmentVariables = (text: string): string => {
+    const activeEnv = useEnvironmentsStore.getState().activeEnvironment;
+    if (!activeEnv || !activeEnv.variables) {
+        return text;
+    }
+    let newText = text;
+    const variables = activeEnv.variables as Record<string, string>;
+    for (const key in variables) {
+        const regex = new RegExp(`\\{\\{${key}\\}\\}`, "g");
+        newText = newText.replace(regex, variables[key]);
+    }
+    return newText;
+};
+
 export const useTabsStore = create<TabsState>((set, get) => ({
     tabs: [createNewTab()],
     activeTabId: null,
@@ -115,10 +131,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
 
             if (newTabs.length === 0) {
                 const newTab = createNewTab();
-                return {
-                    tabs: [newTab],
-                    activeTabId: newTab.id,
-                };
+                return { tabs: [newTab], activeTabId: newTab.id };
             }
 
             return { tabs: newTabs, activeTabId: newActiveTabId };
@@ -142,29 +155,42 @@ export const useTabsStore = create<TabsState>((set, get) => ({
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (!activeTab) return;
 
-        updateActiveTab({ loading: true, response: null, isDirty: false }); // Сбрасываем isDirty в начале
-        const startTime = performance.now(); // Засекаем время начала
+        updateActiveTab({ loading: true, response: null, isDirty: false });
+        const startTime = performance.now();
 
         try {
+            // Применяем переменные окружения ко всем частям запроса
+            const processedUrl = applyEnvironmentVariables(activeTab.url);
+            const processedBody = applyEnvironmentVariables(activeTab.body);
+            const processedHeaders = activeTab.headers.map((h) => ({
+                ...h,
+                value: applyEnvironmentVariables(h.value),
+            }));
+            const processedQueryParams = activeTab.queryParams.map((p) => ({
+                ...p,
+                value: applyEnvironmentVariables(p.value),
+            }));
+
+            // Проверяем тело запроса
             let parsedBody: string | undefined = undefined;
             if (
                 ["POST", "PUT", "PATCH"].includes(activeTab.method) &&
-                activeTab.body.trim() !== ""
+                processedBody.trim() !== ""
             ) {
                 try {
-                    // Просто проверяем, что JSON валидный, и передаем его как строку
-                    JSON.parse(activeTab.body);
-                    parsedBody = activeTab.body;
+                    JSON.parse(processedBody);
+                    parsedBody = processedBody;
                 } catch (e) {
                     throw new Error("Invalid JSON in request body");
                 }
             }
 
+            // Используем обработанные данные для формирования финального запроса
             const finalUrl = buildUrlWithParams(
-                activeTab.url,
-                activeTab.queryParams
+                processedUrl,
+                processedQueryParams
             );
-            const finalHeaders = buildHeadersObject(activeTab.headers);
+            const finalHeaders = buildHeadersObject(processedHeaders);
 
             const res = await fetch("/api/proxy", {
                 method: "POST",
@@ -198,7 +224,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
 
             // 1. Определяем, какое имя использовать для истории и обновления вкладки
             let finalTabName = activeTab.name;
-            if (activeTab.name === "Untitled Request") {
+            if (activeTab.name === "tabs.untitled_request") {
                 const cleanUrl = activeTab.url.replace(
                     /^(https?:\/\/)?(www\.)?/,
                     ""
@@ -216,7 +242,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
 
             if (user) {
                 await addHistoryItem({
-                    url: activeTab.url,
+                    url: activeTab.url, // Сохраняем оригинальный URL без переменных
                     method: activeTab.method,
                     name: finalTabName,
                 });
@@ -265,10 +291,12 @@ export const useTabsStore = create<TabsState>((set, get) => ({
             };
             updateActiveTab({ response: errorResponse, isDirty: false });
         } finally {
-            updateActiveTab({ loading: false, isDirty: false });
+            updateActiveTab({ loading: false });
         }
     },
 }));
 
 // Вызываем инициализацию сразу после создания стора
-useTabsStore.getState().init?.();
+if (typeof window !== "undefined") {
+    useTabsStore.getState().init?.();
+}

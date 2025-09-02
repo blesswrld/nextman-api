@@ -12,54 +12,55 @@ export interface KeyValuePair {
 
 interface KeyValueEditorProps {
     pairs: KeyValuePair[];
-    setPairs: (pairs: KeyValuePair[]) => void;
+    onPairsChange: (newPairs: KeyValuePair[]) => void;
     placeholderKey?: string;
     placeholderValue?: string;
 }
 
 export function KeyValueEditor({
     pairs,
-    setPairs,
-    placeholderKey = "Key",
-    placeholderValue = "Value",
+    onPairsChange,
+    placeholderKey,
+    placeholderValue,
 }: KeyValueEditorProps) {
-    const handlePairChange = (
+    const handleFieldChange = (
         id: string,
         field: "key" | "value",
         newValue: string
     ) => {
-        const newPairs = pairs.map((pair) =>
-            pair.id === id ? { ...pair, [field]: newValue } : pair
+        let newPairs = pairs.map((p) =>
+            p.id === id ? { ...p, [field]: newValue } : p
         );
-        setPairs(newPairs);
 
-        // Если пользователь начал вводить текст в последней строке, добавляем новую пустую строку
+        // Логика добавления новой строки
         const lastPair = newPairs[newPairs.length - 1];
-        if (lastPair && (lastPair.key || lastPair.value)) {
-            setPairs([
-                ...newPairs,
-                { id: crypto.randomUUID(), key: "", value: "" },
-            ]);
+        if (lastPair && (lastPair.key.trim() || lastPair.value.trim())) {
+            newPairs.push({ id: crypto.randomUUID(), key: "", value: "" });
         }
+
+        onPairsChange(newPairs);
     };
 
-    const handleRemovePair = (id: string) => {
-        // Не позволяем удалить последнюю строку, если она единственная
-        if (pairs.length <= 1) return;
+    const handleRemovePair = (idToRemove: string) => {
+        const newPairs = pairs.filter((p) => p.id !== idToRemove);
 
-        const newPairs = pairs.filter((pair) => pair.id !== id);
-        setPairs(newPairs);
+        // Если после удаления не осталось строк, добавляем одну пустую
+        if (newPairs.length === 0) {
+            onPairsChange([{ id: crypto.randomUUID(), key: "", value: "" }]);
+        } else {
+            onPairsChange(newPairs);
+        }
     };
 
     return (
         <div className="space-y-2">
-            {pairs.map((pair) => (
-                <div key={pair.id} className="flex items-center gap-2">
+            {pairs.map((pair, index) => (
+                <div key={pair.id} className="flex items-center gap-2 p-1">
                     <Input
                         placeholder={placeholderKey}
                         value={pair.key}
                         onChange={(e) =>
-                            handlePairChange(pair.id, "key", e.target.value)
+                            handleFieldChange(pair.id, "key", e.target.value)
                         }
                         className="font-mono text-sm"
                     />
@@ -67,7 +68,7 @@ export function KeyValueEditor({
                         placeholder={placeholderValue}
                         value={pair.value}
                         onChange={(e) =>
-                            handlePairChange(pair.id, "value", e.target.value)
+                            handleFieldChange(pair.id, "value", e.target.value)
                         }
                         className="font-mono text-sm"
                     />
@@ -75,7 +76,12 @@ export function KeyValueEditor({
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemovePair(pair.id)}
-                        disabled={pairs.length <= 1}
+                        // Кнопка удаления активна для всех строк, кроме последней пустой
+                        disabled={
+                            index === pairs.length - 1 &&
+                            !pair.key.trim() &&
+                            !pair.value.trim()
+                        }
                     >
                         <Trash2 className="h-4 w-4" />
                     </Button>
