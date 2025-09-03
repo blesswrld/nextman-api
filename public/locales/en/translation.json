@@ -15,6 +15,21 @@
         "header_key": "Header",
         "header_value": "Value"
     },
+    "auth_editor": {
+        "type_label": "Type",
+        "no_auth": "No Auth",
+        "bearer_token": "Bearer Token",
+        "api_key": "API Key",
+        "basic_auth": "Basic Auth",
+        "token_label": "Token",
+        "username_label": "Username",
+        "password_label": "Password",
+        "key_label": "Key",
+        "value_label": "Value",
+        "add_to_label": "Add to",
+        "header_option": "Header",
+        "query_params_option": "Query Params"
+    },
     "main": {
         "create_request_button": "Create a new request",
         "save_button": "Save",
@@ -23,6 +38,7 @@
         "query_params_tab": "Query Params",
         "headers_tab": "Headers",
         "body_tab": "Body",
+        "auth_tab": "Authorization",
         "response_title": "Response",
         "status_label": "Status",
         "time_label": "Time",
@@ -124,6 +140,25 @@
         "collection_deleted_title": "Collection Deleted",
         "collection_deleted_description": "Collection \"{{name}}\" was deleted.",
         "collection_full_title": "Collection is full",
-        "collection_full_description": "A collection can hold a maximum of {{max}} requests."
-    }
+        "collection_full_description": "A collection can hold a maximum of {{max}} requests.",
+        "share_error_title": "Error Sharing",
+        "share_error_description": "Failed to generate a shareable link. Please try again."
+    },
+    "share_page": {
+        "create_your_own": "Create your own",
+        "request_title": "Request",
+        "response_title": "Response",
+        "query_params_tab": "Query Params",
+        "headers_tab": "Headers",
+        "body_tab": "Body",
+        "no_query_params": "No Query Params provided.",
+        "no_headers": "No Headers provided.",
+        "no_body": "No body provided.",
+        "no_response": "No response was recorded for this share.",
+        "preview_tab": "Preview",
+        "error_title": "Oops! Something went wrong.",
+        "error_description": "The shared request data seems to be corrupted or missing.",
+        "back_button": "Back to Nextman API"
+    },
+    "share_button": { "share": "Share", "generating": "Generating link..." }
 }

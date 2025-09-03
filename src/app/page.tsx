@@ -38,6 +38,7 @@ import { Input } from "@/components/ui/input";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthEditor } from "@/components/auth-editor";
+import { ShareButton } from "@/components/share-button";
 
 // --- ДИНАМИЧЕСКИЙ ИМПОРТ РЕДАКТОРА ---
 const CodeEditor = dynamic(
@@ -261,6 +262,7 @@ export default function HomePage() {
                         <EnvironmentManager user={user} />
                         <LanguageSwitcher />
                         <HistorySidebar user={user} />
+                        {user && <ShareButton />}
                         <AuthButton />
                     </div>
                 </header>
@@ -294,6 +296,7 @@ export default function HomePage() {
                     <EnvironmentManager user={user} />
                     <LanguageSwitcher />
                     <HistorySidebar user={user} />
+                    {user && <ShareButton />}
                     <AuthButton />
                 </div>
             </header>
@@ -502,7 +505,7 @@ export default function HomePage() {
                                                 {t("main.headers_tab")}
                                             </TabsTrigger>
                                             <TabsTrigger value="auth">
-                                                Authorization
+                                                {t("main.auth_tab")}
                                             </TabsTrigger>
                                             <TabsTrigger value="body">
                                                 {t("main.body_tab")}

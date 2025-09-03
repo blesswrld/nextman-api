@@ -38,7 +38,9 @@ export function AuthEditor() {
     return (
         <div className="p-4 space-y-4">
             <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Type</Label>
+                <Label className="text-right">
+                    {t("auth_editor.type_label")}
+                </Label>
                 <Select
                     value={auth.type}
                     onValueChange={(type: AuthType) =>
@@ -49,10 +51,18 @@ export function AuthEditor() {
                         <SelectValue placeholder="Select auth type" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="none">No Auth</SelectItem>
-                        <SelectItem value="bearer">Bearer Token</SelectItem>
-                        <SelectItem value="apiKey">API Key</SelectItem>
-                        <SelectItem value="basic">Basic Auth</SelectItem>
+                        <SelectItem value="none">
+                            {t("auth_editor.no_auth")}
+                        </SelectItem>
+                        <SelectItem value="bearer">
+                            {t("auth_editor.bearer_token")}
+                        </SelectItem>
+                        <SelectItem value="apiKey">
+                            {t("auth_editor.api_key")}
+                        </SelectItem>
+                        <SelectItem value="basic">
+                            {t("auth_editor.basic_auth")}
+                        </SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -60,7 +70,7 @@ export function AuthEditor() {
             {auth.type === "bearer" && (
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="bearer-token" className="text-right">
-                        Token
+                        {t("auth_editor.token_label")}
                     </Label>
                     <div className="col-span-3">
                         <VariableInput
@@ -80,7 +90,7 @@ export function AuthEditor() {
                 <div className="space-y-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="basic-username" className="text-right">
-                            Username
+                            {t("auth_editor.username_label")}
                         </Label>
                         <div className="col-span-3">
                             <VariableInput
@@ -98,7 +108,7 @@ export function AuthEditor() {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="basic-password" className="text-right">
-                            Password
+                            {t("auth_editor.password_label")}
                         </Label>
                         <div className="col-span-3">
                             <VariableInput
@@ -121,7 +131,7 @@ export function AuthEditor() {
                 <div className="space-y-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="api-key" className="text-right">
-                            Key
+                            {t("auth_editor.key_label")}
                         </Label>
                         <div className="col-span-3">
                             <VariableInput
@@ -139,7 +149,7 @@ export function AuthEditor() {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="api-value" className="text-right">
-                            Value
+                            {t("auth_editor.value_label")}
                         </Label>
                         <div className="col-span-3">
                             <VariableInput
@@ -156,7 +166,9 @@ export function AuthEditor() {
                         </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Add to</Label>
+                        <Label className="text-right">
+                            {t("auth_editor.add_to_label")}
+                        </Label>
                         <Select
                             value={auth.in || "header"}
                             onValueChange={(val: "header" | "query") =>
@@ -167,9 +179,11 @@ export function AuthEditor() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="header">Header</SelectItem>
+                                <SelectItem value="header">
+                                    {t("auth_editor.header_option")}
+                                </SelectItem>
                                 <SelectItem value="query">
-                                    Query Params
+                                    {t("auth_editor.query_params_option")}
                                 </SelectItem>
                             </SelectContent>
                         </Select>
