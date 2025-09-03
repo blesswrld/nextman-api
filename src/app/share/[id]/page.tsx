@@ -13,17 +13,22 @@ export default async function SharePage({ params }: SharePageProps) {
         cookies: () => cookieStore,
     });
 
+    // Запрашиваем не только request_data, но и name
     const { data, error } = await supabase
         .from("shared_requests")
-        .select("request_data")
+        .select("request_data, name")
         .eq("id", params.id)
         .single();
 
     if (error || !data) {
-        notFound(); // Показываем 404, если не найдено
+        notFound();
     }
 
-    const requestTab = data.request_data as any; // any, так как структура нам известна
+    // Теперь у нас есть и данные запроса, и его "умное" имя
+    const requestTab = data.request_data as any;
+    const shareName = data.name;
 
-    return <ReadOnlyPage requestTab={requestTab} />;
+    // Передаем оба значения в компонент
+    // @ts-ignore
+    return <ReadOnlyPage requestTab={requestTab} shareName={shareName} />;
 }

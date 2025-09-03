@@ -126,6 +126,12 @@
         "english": "Английский",
         "russian": "Русский"
     },
+    "manage_shares": {
+        "button_title": "Управление ссылками",
+        "title": "Управление общими запросами",
+        "description": "У вас {{count}} / {{max}} общих ссылок.",
+        "untitled_share": "Ссылка без названия"
+    },
     "toasts": {
         "validation_error_title": "Ошибка валидации",
         "validation_error_description": "Пожалуйста, укажите имя запроса и выберите коллекцию.",
@@ -140,7 +146,19 @@
         "collection_deleted_title": "Коллекция удалена",
         "collection_deleted_description": "Коллекция «{{name}}» была удалена.",
         "collection_full_title": "Коллекция заполнена",
-        "collection_full_description": "Коллекция может содержать максимум {{max}} запросов."
+        "collection_full_description": "Коллекция может содержать максимум {{max}} запросов.",
+        "share_error_title": "Ошибка",
+        "share_error_description": "Не удалось сгенерировать ссылку. Пожалуйста, попробуйте снова.",
+        "fetch_shares_error_title": "Ошибка",
+        "fetch_shares_error_description": "Не удалось загрузить общие ссылки.",
+        "delete_share_error_title": "Ошибка",
+        "delete_share_error_description": "Не удалось удалить ссылку.",
+        "share_deleted_title": "Ссылка удалена",
+        "share_deleted_description": "Ссылка «{{name}}» была удалена.",
+        "update_share_name_error_title": "Ошибка",
+        "update_share_name_error_description": "Не удалось обновить имя.",
+        "share_limit_reached_title": "Достигнут лимит",
+        "share_limit_reached_description": "У вас может быть не более {{max}} активных ссылок. Пожалуйста, удалите старую."
     },
     "share_page": {
         "create_your_own": "Создать свой",
@@ -158,7 +176,8 @@
         "error_description": "Данные запроса повреждены или отсутствуют.",
         "back_button": "Вернуться в Nextman API",
         "share_error_title": "Ошибка",
-        "share_error_description": "Не удалось сгенерировать ссылку. Пожалуйста, попробуйте снова."
+        "share_error_description": "Не удалось сгенерировать ссылку. Пожалуйста, попробуйте снова.",
+        "default_title": "Общий запрос"
     },
     "share_button": {
         "share": "Поделиться",

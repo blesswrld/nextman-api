@@ -16,6 +16,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { LanguageSwitcher } from "./language-switcher";
 import { useTranslation } from "react-i18next";
 
+// Добавляем `shareName` в пропсы
+interface ReadOnlyPageProps {
+    requestTab: any; // Используй свой настоящий тип вместо any
+    shareName: string | null;
+}
+
 // --- КОМПОНЕНТЫ, АДАПТИРОВАННЫЕ ДЛЯ READ-ONLY ---
 const CodeEditor = dynamic(
     () => import("@/components/editor").then((mod) => mod.CodeEditor),
@@ -182,7 +188,13 @@ function ReadOnlyKeyValue({ pairs, title }: { pairs: any[]; title: string }) {
 }
 
 // --- ОСНОВНОЙ КОМПОНЕНТ СТРАНИЦЫ ---
-function SharedRequestViewer({ requestTab }: { requestTab: RequestTab }) {
+function SharedRequestViewer({
+    requestTab,
+    pageTitle,
+}: {
+    requestTab: RequestTab;
+    pageTitle: string;
+}) {
     const { t } = useTranslation();
     const response = requestTab.response;
     const showPreviewTab =
@@ -230,9 +242,9 @@ function SharedRequestViewer({ requestTab }: { requestTab: RequestTab }) {
                 {/* --- БЛОК ЗАГОЛОВКА --- */}
                 <div>
                     <h2 className="text-3xl font-bold">
-                        {requestTab.name === "tabs.untitled_request"
+                        {pageTitle === "tabs.untitled_request"
                             ? t("tabs.untitled_request")
-                            : requestTab.name}
+                            : pageTitle}
                     </h2>
                     <div className="mt-2 p-3 bg-muted rounded-md font-mono text-sm break-all flex items-center">
                         <span
@@ -420,8 +432,11 @@ function SharedRequestViewer({ requestTab }: { requestTab: RequestTab }) {
 }
 
 // --- КОМПОНЕНТ-ОБЕРТКА ДЛЯ ПРОВАЙДЕРОВ ---
-export function ReadOnlyPage({ requestTab }: { requestTab: RequestTab }) {
+export function ReadOnlyPage({ requestTab, shareName }: ReadOnlyPageProps) {
     const { t } = useTranslation();
+
+    const pageTitle =
+        shareName || requestTab.name || t("share_page.default_title");
 
     if (!requestTab || typeof requestTab !== "object") {
         return (
@@ -431,6 +446,7 @@ export function ReadOnlyPage({ requestTab }: { requestTab: RequestTab }) {
                     {t("share_page.error_title")}
                 </h1>
                 <p className="text-muted-foreground">
+                    {pageTitle}
                     {t("share_page.error_description")}
                 </p>
                 <Button asChild className="mt-6">
@@ -442,7 +458,10 @@ export function ReadOnlyPage({ requestTab }: { requestTab: RequestTab }) {
     return (
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <I18nProvider>
-                <SharedRequestViewer requestTab={requestTab} />
+                <SharedRequestViewer
+                    requestTab={requestTab}
+                    pageTitle={pageTitle}
+                />
             </I18nProvider>
         </ThemeProvider>
     );
