@@ -53,7 +53,9 @@
         "unsupported_preview": "Предпросмотр для {{contentType}} еще не поддерживается.",
         "failed_to_load": "Не удалось загрузить предпросмотр.",
         "failed_to_load_base64": "Не удалось загрузить предпросмотр из данных Base64.",
-        "open_in_new_tab": "Открыть в новой вкладке"
+        "open_in_new_tab": "Открыть в новой вкладке",
+        "preview_blocked_title": "Предпросмотр заблокирован",
+        "preview_blocked_description": "Из соображений безопасности это содержимое нельзя отображать во встроенном окне."
     },
     "collections": {
         "title": "Коллекции",
@@ -74,16 +76,19 @@
     "history": {
         "title": "История запросов",
         "description": "Просматривайте и перезапускайте последние 100 запросов.",
+        "button_title": "История",
         "clear_all_button": "Очистить все",
         "loading": "Загрузка...",
         "empty_title": "История пуста",
         "empty_description": "Ваши недавние запросы появятся здесь.",
+        "empty_subdescription": "Начните с отправки запроса в главном окне.",
         "login_prompt_title": "Войдите, чтобы видеть историю",
         "login_prompt_description": "История запросов доступна только для авторизованных пользователей."
     },
     "environments": {
         "no_environment": "Без окружения",
         "manage_title": "Управление окружениями",
+        "button_title": "Окружения",
         "manage_description": "Создавайте, редактируйте и удаляйте ваши окружения и переменные.",
         "new_placeholder": "Имя нового окружения...",
         "select_to_edit": "Выберите окружение для редактирования.",
@@ -124,13 +129,18 @@
     },
     "language_switcher": {
         "english": "Английский",
-        "russian": "Русский"
+        "russian": "Русский",
+        "button_title": "Язык"
     },
     "manage_shares": {
         "button_title": "Управление ссылками",
         "title": "Управление общими запросами",
         "description": "У вас {{count}} / {{max}} общих ссылок.",
-        "untitled_share": "Ссылка без названия"
+        "untitled_share": "Ссылка без названия",
+        "login_prompt_title": "Войдите для управления ссылками",
+        "login_prompt_description": "Ваши общие ссылки появятся здесь после входа.",
+        "empty_title": "Общих ссылок пока нет",
+        "empty_description": "Создайте свою первую ссылку в главном окне."
     },
     "toasts": {
         "validation_error_title": "Ошибка валидации",
@@ -177,10 +187,15 @@
         "back_button": "Вернуться в Nextman API",
         "share_error_title": "Ошибка",
         "share_error_description": "Не удалось сгенерировать ссылку. Пожалуйста, попробуйте снова.",
-        "default_title": "Общий запрос"
+        "default_title": "Общий запрос",
+        "copy_url": "Копировать URL",
+        "copy_body": "Копировать тело",
+        "footer_text_start": "Опубликовано с помощью",
+        "footer_text_end": "современного API-клиента для разработчиков."
     },
     "share_button": {
         "share": "Поделиться",
-        "generating": "Генерация ссылки..."
+        "generating": "Генерация ссылки...",
+        "login_prompt": "Войдите, чтобы делиться запросами"
     }
 }

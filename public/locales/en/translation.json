@@ -53,7 +53,9 @@
         "unsupported_preview": "Preview for {{contentType}} is not supported yet.",
         "failed_to_load": "Failed to load preview.",
         "failed_to_load_base64": "Failed to load preview from Base64 data.",
-        "open_in_new_tab": "Open in new tab"
+        "open_in_new_tab": "Open in new tab",
+        "preview_blocked_title": "Preview Blocked",
+        "preview_blocked_description": "For security reasons, this content cannot be displayed in an embedded window."
     },
     "collections": {
         "title": "Collections",
@@ -74,16 +76,19 @@
     "history": {
         "title": "Request History",
         "description": "View and re-run your past 100 requests.",
+        "button_title": "History",
         "clear_all_button": "Clear All",
         "loading": "Loading...",
         "empty_title": "No History Yet",
         "empty_description": "Your recent requests will appear here.",
+        "empty_subdescription": "Start by sending a request from the main window.",
         "login_prompt_title": "Login to see History",
         "login_prompt_description": "Request history is only available for logged in users."
     },
     "environments": {
         "no_environment": "No Environment",
         "manage_title": "Manage Environments",
+        "button_title": "Environments",
         "manage_description": "Create, edit, and delete your environments and variables.",
         "new_placeholder": "New environment name...",
         "select_to_edit": "Select an environment to edit.",
@@ -124,13 +129,18 @@
     },
     "language_switcher": {
         "english": "English",
-        "russian": "Russian"
+        "russian": "Russian",
+        "button_title": "Language"
     },
     "manage_shares": {
         "button_title": "Manage Shares",
         "title": "Manage Shared Requests",
         "description": "You have {{count}} / {{max}} shared links.",
-        "untitled_share": "Untitled Share"
+        "untitled_share": "Untitled Share",
+        "login_prompt_title": "Login to Manage Shares",
+        "login_prompt_description": "Your shared links will appear here once you log in.",
+        "empty_title": "No Shared Links Yet",
+        "empty_description": "Create your first share from the main window."
     },
     "toasts": {
         "validation_error_title": "Validation Error",
@@ -175,7 +185,15 @@
         "error_title": "Oops! Something went wrong.",
         "error_description": "The shared request data seems to be corrupted or missing.",
         "back_button": "Back to Nextman API",
-        "default_title": "Shared Request"
+        "default_title": "Shared Request",
+        "copy_url": "Copy URL",
+        "copy_body": "Copy Body",
+        "footer_text_start": "Shared with",
+        "footer_text_end": "a modern API client for developers."
     },
-    "share_button": { "share": "Share", "generating": "Generating link..." }
+    "share_button": {
+        "share": "Share",
+        "generating": "Generating link...",
+        "login_prompt": "Login to share requests"
+    }
 }

@@ -40,7 +40,13 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                 setLoading(false);
             });
         }
-    }, [isOpen, user]); // Добавляем user в массив зависимостей
+        // Если пользователь не авторизован и панель открыта,
+        // убедимся, что история пуста и нет загрузки.
+        if (isOpen && !user) {
+            setHistory([]);
+            setLoading(false);
+        }
+    }, [isOpen, user]);
 
     const handleClearHistory = async () => {
         await clearHistory();
@@ -61,7 +67,11 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
     return (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    title={t("history.button_title")}
+                >
                     <History className="h-4 w-4" />
                 </Button>
             </SheetTrigger>
@@ -75,6 +85,7 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
 
                 {/* 2. Добавляем условный рендеринг на основе пропса `user` */}
                 {user ? (
+                    // --- СЦЕНАРИЙ 1: ПОЛЬЗОВАТЕЛЬ АВТОРИЗОВАН ---
                     <>
                         <div className="py-4">
                             <Button
@@ -90,62 +101,56 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                         <div className="flex-grow overflow-y-auto">
                             {loading ? (
                                 <HistorySkeleton />
-                            ) : (
+                            ) : history.length > 0 ? (
+                                // --- Если история ЕСТЬ ---
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    {history.length > 0 ? (
-                                        <div className="flex flex-col gap-2">
-                                            {history.map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className="p-2 border rounded-md hover:bg-muted cursor-pointer"
-                                                    onClick={() =>
-                                                        handleHistoryItemClick(
-                                                            item
-                                                        )
-                                                    }
-                                                >
-                                                    {/* Отображаем сохраненное имя */}
-                                                    <div className="text-sm font-medium truncate">
-                                                        {item.name}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <span className="font-semibold text-green-500 w-16 text-xs">
-                                                            {item.method}
-                                                        </span>
-                                                        <span className="text-xs text-muted-foreground truncate">
-                                                            {item.url}
-                                                        </span>
-                                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        {history.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className="p-2 border rounded-md hover:bg-muted cursor-pointer"
+                                                onClick={() =>
+                                                    handleHistoryItemClick(item)
+                                                }
+                                            >
+                                                <div className="text-sm font-medium truncate">
+                                                    {item.name}
                                                 </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        // Улучшенное пустое состояние
-                                        <div className="text-center py-8 h-full flex flex-col items-center justify-center">
-                                            <History className="h-10 w-10 mx-auto text-muted-foreground" />
-                                            <h3 className="mt-2 text-sm font-semibold">
-                                                {t("history.empty_description")}
-                                            </h3>
-                                            <p className="mt-1 text-sm text-muted-foreground">
-                                                {t(
-                                                    "history.login_prompt_description"
-                                                )}
-                                            </p>
-                                        </div>
-                                    )}
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="font-semibold text-green-500 w-16 text-xs">
+                                                        {item.method}
+                                                    </span>
+                                                    <span className="text-xs text-muted-foreground truncate">
+                                                        {item.url}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </motion.div>
+                            ) : (
+                                // --- Если истории НЕТ (но пользователь авторизован) ---
+                                <div className="text-center py-8 h-full flex flex-col items-center justify-center">
+                                    <History className="h-10 w-10 mx-auto text-muted-foreground" />
+                                    <h3 className="mt-4 text-sm font-semibold">
+                                        {t("history.empty_title")}
+                                    </h3>
+                                    <p className="mt-1 text-sm text-muted-foreground">
+                                        {t("history.empty_subdescription")}
+                                    </p>
+                                </div>
                             )}
                         </div>
                     </>
                 ) : (
-                    // 3. Заглушка для неавторизованного пользователя
+                    // --- СЦЕНАРИЙ 2: ПОЛЬЗОВАТЕЛЬ НЕ АВТОРИЗОВАН ---
                     <div className="flex-grow flex flex-col items-center justify-center text-center">
                         <LogIn className="h-10 w-10 mx-auto text-muted-foreground" />
-                        <h3 className="mt-2 text-sm font-semibold">
+                        <h3 className="mt-4 text-sm font-semibold">
                             {t("history.login_prompt_title")}
                         </h3>
                         <p className="mt-1 text-sm text-muted-foreground">

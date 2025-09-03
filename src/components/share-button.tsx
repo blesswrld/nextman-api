@@ -13,10 +13,21 @@ import {
 import { Input } from "./ui/input";
 import { useTranslation } from "react-i18next";
 import { createClient } from "@/lib/supabase/client";
-
+import type { User } from "@supabase/supabase-js";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 const MAX_SHARED_REQUESTS = 20;
 
-export function ShareButton() {
+// --- Добавляем пропс user ---
+interface ShareButtonProps {
+    user: User | null;
+}
+
+export function ShareButton({ user }: ShareButtonProps) {
     const { t } = useTranslation();
 
     const { toast } = useToast();
@@ -78,6 +89,26 @@ export function ShareButton() {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
+
+    // --- Логика для неавторизованных пользователей ---
+    if (!user) {
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        {/* Кнопка-пустышка, которая будет задизейблена */}
+                        <Button variant="outline" size="sm" disabled>
+                            <Share2 className="h-4 w-4 mr-2" />
+                            {t("share_button.share")}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{t("share_button.login_prompt")}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        );
+    }
 
     return (
         <Popover onOpenChange={(open) => !open && setShareUrl("")}>

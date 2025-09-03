@@ -10,18 +10,24 @@ import {
     SheetTrigger,
     SheetDescription,
 } from "@/components/ui/sheet";
-import { Link as LinkIcon, Trash2, Copy, Check } from "lucide-react";
+import { Link as LinkIcon, Trash2, Copy, Check, LogIn } from "lucide-react";
 import { EditableText } from "./editable-text";
 import { Skeleton } from "./ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/lib/supabase/database.types";
 import { useTranslation } from "react-i18next";
+import type { User } from "@supabase/supabase-js";
+
+// --- Добавляем пропс user ---
+interface ManageSharesProps {
+    user: User | null;
+}
 
 type SharedRequest = Database["public"]["Tables"]["shared_requests"]["Row"];
 const MAX_SHARED_REQUESTS = 20;
 
-export function ManageShares() {
+export function ManageShares({ user }: ManageSharesProps) {
     const { t } = useTranslation();
     const [requests, setRequests] = useState<SharedRequest[]>([]);
     const [loading, setLoading] = useState(false);
@@ -47,10 +53,10 @@ export function ManageShares() {
     }, [supabase, toast]);
 
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && user) {
             fetchRequests();
         }
-    }, [isOpen, fetchRequests]);
+    }, [isOpen, fetchRequests, user]);
 
     const handleCopy = (id: string) => {
         const url = `${window.location.origin}/share/${id}`;
@@ -129,79 +135,113 @@ export function ManageShares() {
             <SheetContent className="w-[400px] sm:w-[540px] flex flex-col">
                 <SheetHeader>
                     <SheetTitle>{t("manage_shares.title")}</SheetTitle>
-                    <SheetDescription>
-                        {t("manage_shares.description", {
-                            count: requests.length,
-                            max: MAX_SHARED_REQUESTS,
-                        })}
-                    </SheetDescription>
-                </SheetHeader>
-                <div className="flex-grow overflow-y-auto py-4">
-                    {loading ? (
-                        <div className="space-y-3">
-                            {[...Array(3)].map((_, i) => (
-                                <Skeleton key={i} className="h-16 w-full" />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="space-y-2">
-                            {requests.map((req) => (
-                                <div
-                                    key={req.id}
-                                    className="p-2 border rounded-md flex items-center justify-between group"
-                                >
-                                    <div className="flex-grow truncate mr-2">
-                                        <EditableText
-                                            initialValue={
-                                                req.name ||
-                                                t(
-                                                    "manage_shares.untitled_share"
-                                                )
-                                            }
-                                            onSave={(newName) =>
-                                                handleNameUpdate(
-                                                    req.id,
-                                                    newName
-                                                )
-                                            }
-                                            className="text-sm font-medium"
-                                            inputClassName="h-7 text-sm"
-                                        />
-                                        <p className="text-xs text-muted-foreground truncate">
-                                            {new Date(
-                                                req.created_at
-                                            ).toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-7 w-7"
-                                            onClick={() => handleCopy(req.id)}
-                                        >
-                                            {copiedId === req.id ? (
-                                                <Check className="h-4 w-4 text-green-500" />
-                                            ) : (
-                                                <Copy className="h-4 w-4" />
-                                            )}
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-7 w-7 text-destructive"
-                                            onClick={() =>
-                                                handleDelete(req.id, req.name)
-                                            }
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                    {/* --- Показываем описание только если юзер залогинен */}
+                    {user && (
+                        <SheetDescription>
+                            {t("manage_shares.description", {
+                                count: requests.length,
+                                max: MAX_SHARED_REQUESTS,
+                            })}
+                        </SheetDescription>
                     )}
-                </div>
+                </SheetHeader>
+
+                {user ? (
+                    // Если пользователь авторизован, показываем контент
+                    <div className="flex-grow overflow-y-auto py-4">
+                        {loading ? (
+                            <div className="space-y-3">
+                                {[...Array(3)].map((_, i) => (
+                                    <Skeleton key={i} className="h-16 w-full" />
+                                ))}
+                            </div>
+                        ) : requests.length > 0 ? ( // Добавил проверку на пустой массив
+                            <div className="space-y-2">
+                                {requests.map((req) => (
+                                    <div
+                                        key={req.id}
+                                        className="p-2 border rounded-md flex items-center justify-between group"
+                                    >
+                                        <div className="flex-grow truncate mr-2">
+                                            <EditableText
+                                                initialValue={
+                                                    req.name ||
+                                                    t(
+                                                        "manage_shares.untitled_share"
+                                                    )
+                                                }
+                                                onSave={(newName) =>
+                                                    handleNameUpdate(
+                                                        req.id,
+                                                        newName
+                                                    )
+                                                }
+                                                className="text-sm font-medium"
+                                                inputClassName="h-7 text-sm"
+                                            />
+                                            <p className="text-xs text-muted-foreground truncate">
+                                                {new Date(
+                                                    req.created_at
+                                                ).toLocaleString()}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="h-7 w-7"
+                                                onClick={() =>
+                                                    handleCopy(req.id)
+                                                }
+                                            >
+                                                {copiedId === req.id ? (
+                                                    <Check className="h-4 w-4 text-green-500" />
+                                                ) : (
+                                                    <Copy className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="h-7 w-7 text-destructive"
+                                                onClick={() =>
+                                                    handleDelete(
+                                                        req.id,
+                                                        req.name
+                                                    )
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            // Заглушка, если ссылок пока нет
+                            <div className="text-center py-8 h-full flex flex-col items-center justify-center">
+                                <LinkIcon className="h-10 w-10 mx-auto text-muted-foreground" />
+                                <h3 className="mt-4 text-sm font-semibold">
+                                    {t("manage_shares.empty_title")}
+                                </h3>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    {t("manage_shares.empty_description")}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    // Если пользователь НЕ авторизован, показываем заглушку
+                    <div className="flex-grow flex flex-col items-center justify-center text-center">
+                        <LogIn className="h-10 w-10 mx-auto text-muted-foreground" />
+                        <h3 className="mt-4 text-sm font-semibold">
+                            {t("manage_shares.login_prompt_title")}
+                        </h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            {t("manage_shares.login_prompt_description")}
+                        </p>
+                    </div>
+                )}
             </SheetContent>
         </Sheet>
     );
