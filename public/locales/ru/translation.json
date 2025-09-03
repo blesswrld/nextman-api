@@ -15,6 +15,21 @@
         "header_key": "Заголовок",
         "header_value": "Значение"
     },
+    "auth_editor": {
+        "type_label": "Тип",
+        "no_auth": "Нет авторизации",
+        "bearer_token": "Bearer Token",
+        "api_key": "API Key",
+        "basic_auth": "Basic Auth",
+        "token_label": "Токен",
+        "username_label": "Имя пользователя",
+        "password_label": "Пароль",
+        "key_label": "Ключ",
+        "value_label": "Значение",
+        "add_to_label": "Добавить в",
+        "header_option": "Заголовок",
+        "query_params_option": "Параметры запроса"
+    },
     "main": {
         "create_request_button": "Создать новый запрос",
         "save_button": "Сохранить",
@@ -23,6 +38,7 @@
         "query_params_tab": "Параметры",
         "headers_tab": "Заголовки",
         "body_tab": "Тело",
+        "auth_tab": "Авторизация",
         "response_title": "Ответ",
         "status_label": "Статус",
         "time_label": "Время",
@@ -125,5 +141,27 @@
         "collection_deleted_description": "Коллекция «{{name}}» была удалена.",
         "collection_full_title": "Коллекция заполнена",
         "collection_full_description": "Коллекция может содержать максимум {{max}} запросов."
+    },
+    "share_page": {
+        "create_your_own": "Создать свой",
+        "request_title": "Запрос",
+        "response_title": "Ответ",
+        "query_params_tab": "Параметры",
+        "headers_tab": "Заголовки",
+        "body_tab": "Тело",
+        "no_query_params": "Параметры не предоставлены.",
+        "no_headers": "Заголовки не предоставлены.",
+        "no_body": "Тело запроса не предоставлено.",
+        "no_response": "Для этого запроса не был записан ответ.",
+        "preview_tab": "Предпросмотр",
+        "error_title": "Ой! Что-то пошло не так.",
+        "error_description": "Данные запроса повреждены или отсутствуют.",
+        "back_button": "Вернуться в Nextman API",
+        "share_error_title": "Ошибка",
+        "share_error_description": "Не удалось сгенерировать ссылку. Пожалуйста, попробуйте снова."
+    },
+    "share_button": {
+        "share": "Поделиться",
+        "generating": "Генерация ссылки..."
     }
 }
