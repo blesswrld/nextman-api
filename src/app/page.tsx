@@ -39,6 +39,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthEditor } from "@/components/auth-editor";
 import { ShareButton } from "@/components/share-button";
+import { ManageShares } from "@/components/manage-shares";
 
 // --- ДИНАМИЧЕСКИЙ ИМПОРТ РЕДАКТОРА ---
 const CodeEditor = dynamic(
@@ -262,6 +263,7 @@ export default function HomePage() {
                         <EnvironmentManager user={user} />
                         <LanguageSwitcher />
                         <HistorySidebar user={user} />
+                        {user && <ManageShares />}
                         {user && <ShareButton />}
                         <AuthButton />
                     </div>
@@ -296,6 +298,7 @@ export default function HomePage() {
                     <EnvironmentManager user={user} />
                     <LanguageSwitcher />
                     <HistorySidebar user={user} />
+                    {user && <ManageShares />}
                     {user && <ShareButton />}
                     <AuthButton />
                 </div>

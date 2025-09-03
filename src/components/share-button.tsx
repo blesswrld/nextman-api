@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "./ui/input";
 import { useTranslation } from "react-i18next";
+import { createClient } from "@/lib/supabase/client";
+
+const MAX_SHARED_REQUESTS = 20;
 
 export function ShareButton() {
     const { t } = useTranslation();
@@ -28,11 +31,31 @@ export function ShareButton() {
     const handleShare = async () => {
         if (!activeTab) return;
         setLoading(true);
+        setShareUrl("");
         try {
+            const supabase = createClient();
+            const { count, error: countError } = await supabase
+                .from("shared_requests")
+                .select("*", { count: "exact", head: true });
+
+            if (countError) throw countError;
+
+            if (count !== null && count >= MAX_SHARED_REQUESTS) {
+                toast({
+                    title: t("toasts.share_limit_reached_title"),
+                    description: t("toasts.share_limit_reached_description", {
+                        max: MAX_SHARED_REQUESTS,
+                    }),
+                    variant: "destructive",
+                });
+                setLoading(false); // <-- Убедимся, что загрузка прекращается
+                return;
+            }
+
             const res = await fetch("/api/share", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(activeTab), // Отправляем все данные вкладки
+                body: JSON.stringify(activeTab),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Failed to share");
@@ -70,9 +93,11 @@ export function ShareButton() {
                 </Button>
             </PopoverTrigger>
             <PopoverContent>
-                {loading ? (
-                    <p>{t("share_button.generating")}</p>
-                ) : (
+                {loading && !shareUrl ? (
+                    <p className="text-sm p-2">
+                        {t("share_button.generating")}
+                    </p>
+                ) : shareUrl ? (
                     <div className="flex gap-2">
                         <Input value={shareUrl} readOnly />
                         <Button size="icon" onClick={handleCopy}>
@@ -83,7 +108,7 @@ export function ShareButton() {
                             )}
                         </Button>
                     </div>
-                )}
+                ) : null}
             </PopoverContent>
         </Popover>
     );

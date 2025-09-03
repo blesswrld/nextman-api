@@ -126,6 +126,12 @@
         "english": "English",
         "russian": "Russian"
     },
+    "manage_shares": {
+        "button_title": "Manage Shares",
+        "title": "Manage Shared Requests",
+        "description": "You have {{count}} / {{max}} shared links.",
+        "untitled_share": "Untitled Share"
+    },
     "toasts": {
         "validation_error_title": "Validation Error",
         "validation_error_description": "Please provide a request name and select a collection.",
@@ -142,7 +148,17 @@
         "collection_full_title": "Collection is full",
         "collection_full_description": "A collection can hold a maximum of {{max}} requests.",
         "share_error_title": "Error Sharing",
-        "share_error_description": "Failed to generate a shareable link. Please try again."
+        "share_error_description": "Failed to generate a shareable link. Please try again.",
+        "fetch_shares_error_title": "Error",
+        "fetch_shares_error_description": "Could not fetch shared links.",
+        "delete_share_error_title": "Error",
+        "delete_share_error_description": "Failed to delete share.",
+        "share_deleted_title": "Share Deleted",
+        "share_deleted_description": "Share \"{{name}}\" was deleted.",
+        "update_share_name_error_title": "Error",
+        "update_share_name_error_description": "Failed to update name.",
+        "share_limit_reached_title": "Limit Reached",
+        "share_limit_reached_description": "You can only have {{max}} active shares. Please delete an old one."
     },
     "share_page": {
         "create_your_own": "Create your own",
@@ -158,7 +174,8 @@
         "preview_tab": "Preview",
         "error_title": "Oops! Something went wrong.",
         "error_description": "The shared request data seems to be corrupted or missing.",
-        "back_button": "Back to Nextman API"
+        "back_button": "Back to Nextman API",
+        "default_title": "Shared Request"
     },
     "share_button": { "share": "Share", "generating": "Generating link..." }
 }
