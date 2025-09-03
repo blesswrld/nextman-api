@@ -160,7 +160,11 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
 
             <Dialog open={isManageOpen} onOpenChange={setIsManageOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline" size="icon">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        title={t("environments.button_title")}
+                    >
                         <Settings className="h-4 w-4" />
                     </Button>
                 </DialogTrigger>

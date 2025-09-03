@@ -1,7 +1,11 @@
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { ReadOnlyPage } from "@/components/read-only-page";
+import {
+    ReadOnlyPage,
+    ReadOnlyPageSkeleton,
+} from "@/components/read-only-page";
+import { Suspense } from "react";
 
 interface SharePageProps {
     params: { id: string };
@@ -29,6 +33,9 @@ export default async function SharePage({ params }: SharePageProps) {
     const shareName = data.name;
 
     // Передаем оба значения в компонент
-    // @ts-ignore
-    return <ReadOnlyPage requestTab={requestTab} shareName={shareName} />;
+    return (
+        <Suspense fallback={<ReadOnlyPageSkeleton />}>
+            <ReadOnlyPage requestTab={requestTab} shareName={shareName} />
+        </Suspense>
+    );
 }

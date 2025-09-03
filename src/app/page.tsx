@@ -54,6 +54,41 @@ const CodeEditor = dynamic(
 function ResponsePreview({ response }: { response: ResponseData }) {
     const { t } = useTranslation();
 
+    // Находим заголовок X-Frame-Options (в нижнем регистре, т.к. заголовки нечувствительны к регистру)
+    const xFrameOptions = response.headers["x-frame-options"];
+
+    if (
+        xFrameOptions &&
+        (xFrameOptions.toLowerCase() === "deny" ||
+            xFrameOptions.toLowerCase() === "sameorigin")
+    ) {
+        return (
+            <div className="p-4 text-center flex flex-col items-center justify-center h-full">
+                <h3 className="font-semibold">
+                    {t("previews.preview_blocked_title")}
+                </h3>
+                <p className="text-muted-foreground text-sm mt-1">
+                    {t("previews.preview_blocked_description")}
+                </p>
+                {/* Кнопка-запасной вариант, чтобы пользователь все равно мог увидеть контент */}
+                <Button
+                    variant="secondary"
+                    className="mt-4"
+                    onClick={() => {
+                        const blob = new Blob([response.rawBody], {
+                            type: response.contentType || "text/html",
+                        });
+                        const url = URL.createObjectURL(blob);
+                        window.open(url, "_blank");
+                    }}
+                >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    {t("previews.open_in_new_tab")}
+                </Button>
+            </div>
+        );
+    }
+
     if (!response.contentType) {
         return (
             <div className="p-4 text-muted-foreground">
@@ -258,13 +293,13 @@ export default function HomePage() {
                 <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                     <h1 className="text-xl font-bold">{t("header.title")}</h1>
                     <div className="flex items-center gap-2">
+                        <LanguageSwitcher />
                         <ThemeToggle />
                         <CodeGenerationDialog />
                         <EnvironmentManager user={user} />
-                        <LanguageSwitcher />
                         <HistorySidebar user={user} />
-                        {user && <ManageShares />}
-                        {user && <ShareButton />}
+                        <ManageShares user={user} />
+                        <ShareButton user={user} />
                         <AuthButton />
                     </div>
                 </header>
@@ -293,13 +328,13 @@ export default function HomePage() {
             <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                 <h1 className="text-xl font-bold">{t("header.title")}</h1>
                 <div className="flex items-center gap-2">
+                    <LanguageSwitcher />
                     <ThemeToggle />
                     <CodeGenerationDialog />
                     <EnvironmentManager user={user} />
-                    <LanguageSwitcher />
                     <HistorySidebar user={user} />
-                    {user && <ManageShares />}
-                    {user && <ShareButton />}
+                    <ManageShares user={user} />
+                    <ShareButton user={user} />
                     <AuthButton />
                 </div>
             </header>
