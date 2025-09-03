@@ -26,6 +26,7 @@ export interface RequestTab {
     queryParams: KeyValuePair[];
     headers: KeyValuePair[];
     body: string;
+    auth: AuthState;
     response: ResponseData | null;
     loading: boolean;
     isDirty?: boolean;
@@ -45,6 +46,20 @@ interface TabsState {
     init?: () => void;
 }
 
+export interface AuthState {
+    type: AuthType;
+    // Поля для разных типов авторизации
+    token?: string; // для Bearer Token
+    key?: string; // для API Key
+    value?: string; // для API Key
+    in?: "header" | "query"; // где находится API Key
+    username?: string; // для Basic Auth
+    password?: string; // для Basic Auth
+}
+
+// --- ТИПЫ ДЛЯ АВТОРИЗАЦИИ ---
+export type AuthType = "none" | "bearer" | "apiKey" | "basic";
+
 // Функция для создания новой пустой вкладки
 const createNewTab = (data?: Partial<RequestTab>): RequestTab => ({
     id: crypto.randomUUID(),
@@ -57,6 +72,7 @@ const createNewTab = (data?: Partial<RequestTab>): RequestTab => ({
     ],
     headers: data?.headers || [{ id: crypto.randomUUID(), key: "", value: "" }],
     body: data?.body || "",
+    auth: data?.auth || { type: "none" },
     response: null,
     loading: data?.loading || false,
     isDirty: data?.isDirty === undefined ? false : data.isDirty,
@@ -98,6 +114,58 @@ const applyEnvironmentVariables = (text: string): string => {
         newText = newText.replace(regex, variables[key]);
     }
     return newText;
+};
+
+// Применяет данные авторизации, изменяя заголовки или query-параметры
+const applyAuth = (
+    headers: KeyValuePair[],
+    queryParams: KeyValuePair[],
+    auth: AuthState
+): { finalHeaders: KeyValuePair[]; finalQueryParams: KeyValuePair[] } => {
+    let finalHeaders = [...headers];
+    let finalQueryParams = [...queryParams];
+
+    // Удаляем предыдущие "Authorization" заголовки, чтобы избежать дублей
+    finalHeaders = finalHeaders.filter(
+        (h) => h.key.toLowerCase() !== "authorization"
+    );
+
+    if (auth.type === "bearer" && auth.token) {
+        finalHeaders.push({
+            id: crypto.randomUUID(),
+            key: "Authorization",
+            value: `Bearer ${auth.token}`,
+        });
+    }
+
+    if (auth.type === "apiKey" && auth.key && auth.value) {
+        if (auth.in === "header") {
+            finalHeaders.push({
+                id: crypto.randomUUID(),
+                key: auth.key,
+                value: auth.value,
+            });
+        } else {
+            // 'query'
+            finalQueryParams.push({
+                id: crypto.randomUUID(),
+                key: auth.key,
+                value: auth.value,
+            });
+        }
+    }
+
+    if (auth.type === "basic" && auth.username) {
+        // btoa кодирует строку в Base64. Эта функция есть во всех современных браузерах и в Node.js.
+        const encoded = btoa(`${auth.username}:${auth.password || ""}`);
+        finalHeaders.push({
+            id: crypto.randomUUID(),
+            key: "Authorization",
+            value: `Basic ${encoded}`,
+        });
+    }
+
+    return { finalHeaders, finalQueryParams };
 };
 
 // --- ХРАНИЛИЩЕ ZUSTAND ---
@@ -164,14 +232,28 @@ export const useTabsStore = create<TabsState>((set, get) => ({
         const startTime = performance.now();
 
         try {
-            // Применяем переменные окружения ко всем частям запроса
+            // --- 1. ПРИМЕНЯЕМ АВТОРИЗАЦИЮ ---
+            // Сначала добавляем "сырые" данные авторизации (например, заголовок с `{{token}}`)
+            // к "сырым" заголовкам и параметрам из вкладки.
+            const {
+                finalHeaders: headersWithAuth,
+                finalQueryParams: queryParamsWithAuth,
+            } = applyAuth(
+                activeTab.headers,
+                activeTab.queryParams,
+                activeTab.auth
+            );
+
+            // --- 2. ПРИМЕНЯЕМ ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ---
+            // Теперь "прогоняем" все части запроса, включая новые данные авторизации,
+            // через функцию подстановки переменных.
             const processedUrl = applyEnvironmentVariables(activeTab.url);
             const processedBody = applyEnvironmentVariables(activeTab.body);
-            const processedHeaders = activeTab.headers.map((h) => ({
+            const processedHeaders = headersWithAuth.map((h) => ({
                 ...h,
                 value: applyEnvironmentVariables(h.value),
             }));
-            const processedQueryParams = activeTab.queryParams.map((p) => ({
+            const processedQueryParams = queryParamsWithAuth.map((p) => ({
                 ...p,
                 value: applyEnvironmentVariables(p.value),
             }));
@@ -190,12 +272,13 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 }
             }
 
-            // Используем обработанные данные для формирования финального запроса
+            // --- 3. ФОРМИРУЕМ ФИНАЛЬНЫЙ ЗАПРОС ---
+            // Используем полностью обработанные данные.
             const finalUrl = buildUrlWithParams(
                 processedUrl,
                 processedQueryParams
             );
-            const finalHeaders = buildHeadersObject(processedHeaders);
+            const finalHeadersObject = buildHeadersObject(processedHeaders);
 
             const res = await fetch("/api/proxy", {
                 method: "POST",
@@ -203,7 +286,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 body: JSON.stringify({
                     url: finalUrl,
                     method: activeTab.method,
-                    headers: finalHeaders,
+                    headers: finalHeadersObject,
                     body: parsedBody,
                 }),
             });
@@ -223,7 +306,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                         rawBody: JSON.stringify(dataFromProxy),
                         contentType: "application/json",
                         time: requestTime,
-                        isBase64: false, // Ошибки не в Base64
+                        isBase64: false,
                     },
                     message: dataFromProxy.error || "Proxy request failed",
                 };
@@ -256,7 +339,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                     .slice(0, 25)}...`;
             }
 
-            // Сохраняем в историю с правильным именем
+            // Сохраняем в историю с правильным (возможно, новым) именем, только если пользователь авторизован
             const supabase = createClient();
             const {
                 data: { user },
@@ -270,6 +353,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 });
             }
 
+            // Обновляем вкладку, включая ответ и новое имя
             const responseData: ResponseData = {
                 status: dataFromProxy.status,
                 statusText: dataFromProxy.statusText,
@@ -311,7 +395,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 }),
                 contentType: "application/json",
                 time: requestTime,
-                isBase64: false, // Ошибки не в Base64
+                isBase64: false,
             };
             updateActiveTab({ response: errorResponse, isDirty: false });
         } finally {

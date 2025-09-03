@@ -37,6 +37,7 @@ import { VariableInput } from "@/components/variable-input";
 import { Input } from "@/components/ui/input";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AuthEditor } from "@/components/auth-editor";
 
 // --- ДИНАМИЧЕСКИЙ ИМПОРТ РЕДАКТОРА ---
 const CodeEditor = dynamic(
@@ -500,6 +501,9 @@ export default function HomePage() {
                                             <TabsTrigger value="headers">
                                                 {t("main.headers_tab")}
                                             </TabsTrigger>
+                                            <TabsTrigger value="auth">
+                                                Authorization
+                                            </TabsTrigger>
                                             <TabsTrigger value="body">
                                                 {t("main.body_tab")}
                                             </TabsTrigger>
@@ -537,6 +541,9 @@ export default function HomePage() {
                                                     "kv_editor.header_value"
                                                 )}
                                             />
+                                        </TabsContent>
+                                        <TabsContent value="auth">
+                                            <AuthEditor />
                                         </TabsContent>
                                         <TabsContent
                                             value="body"
