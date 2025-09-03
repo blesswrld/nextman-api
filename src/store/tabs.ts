@@ -5,6 +5,17 @@ import { createClient } from "@/lib/supabase/client";
 import i18n from "../../i18n"; // <-- ИМПОРТ
 import { useEnvironmentsStore } from "./environments";
 
+export interface AuthState {
+    type: AuthType;
+    // Поля для разных типов авторизации
+    token?: string; // для Bearer Token
+    key?: string; // для API Key
+    value?: string; // для API Key
+    in?: "header" | "query"; // где находится API Key
+    username?: string; // для Basic Auth
+    password?: string; // для Basic Auth
+}
+
 // Описываем более подробный формат объекта ответа
 export interface ResponseData {
     status: number;
@@ -44,17 +55,6 @@ interface TabsState {
     sendRequest: () => Promise<void>;
 
     init?: () => void;
-}
-
-export interface AuthState {
-    type: AuthType;
-    // Поля для разных типов авторизации
-    token?: string; // для Bearer Token
-    key?: string; // для API Key
-    value?: string; // для API Key
-    in?: "header" | "query"; // где находится API Key
-    username?: string; // для Basic Auth
-    password?: string; // для Basic Auth
 }
 
 // --- ТИПЫ ДЛЯ АВТОРИЗАЦИИ ---
