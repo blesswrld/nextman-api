@@ -331,7 +331,7 @@ export default function HomePage() {
         return (
             <div className="flex flex-col h-screen bg-background text-foreground">
                 <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
                         {/* ЛОГОТИП ЗДЕСЬ */}
                         {/* ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ ПУТЬ */}
                         {isMounted ? (
@@ -350,7 +350,7 @@ export default function HomePage() {
                             {t("header.title")}
                         </h1>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
                         <LanguageSwitcher />
                         <ThemeToggle />
                         <CodeGenerationDialog />
@@ -384,7 +384,7 @@ export default function HomePage() {
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
             <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
                     {/* ЛОГОТИП ЗДЕСЬ */}
                     {/* ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ ПУТЬ И ЗДЕСЬ */}
                     {isMounted ? (
@@ -400,7 +400,7 @@ export default function HomePage() {
                     )}
                     <h1 className="text-xl font-bold">{t("header.title")}</h1>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
                     <LanguageSwitcher />
                     <ThemeToggle />
                     <CodeGenerationDialog />
@@ -564,7 +564,7 @@ export default function HomePage() {
                             <ResizablePanel defaultSize={40} minSize={20}>
                                 <div className="p-4 h-full flex flex-col gap-4">
                                     {/* Строка URL */}
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
                                         <Select
                                             value={activeTab.method}
                                             onValueChange={handleMethodChange}

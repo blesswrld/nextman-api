@@ -53,7 +53,7 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => ({
         }
         const { data: collections, error } = await supabase
             .from("collections")
-            .select(`*, requests!inner(*)`)
+            .select(`*, requests(*)`)
             .eq("user_id", user.id)
             .order("created_at", { ascending: true });
         if (error) {
