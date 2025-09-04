@@ -36,6 +36,8 @@ export function SaveRequestDialog() {
     );
 
     const { collections, saveRequest } = useCollectionsStore();
+    const updateActiveTab = useTabsStore((state) => state.updateActiveTab);
+
     const activeTab = useTabsStore((state) =>
         state.tabs.find((t) => t.id === state.activeTabId)
     );
@@ -105,6 +107,9 @@ export function SaveRequestDialog() {
 
         // @ts-ignore
         await saveRequest(selectedCollection, requestToSave);
+
+        // После успешного сохранения, помечаем вкладку как "чистую"
+        updateActiveTab({ isDirty: false, name: finalRequestName });
 
         toast({
             title: t("toasts.request_saved_title"),

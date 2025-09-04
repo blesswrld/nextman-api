@@ -212,12 +212,13 @@ export const useTabsStore = create<TabsState>((set, get) => ({
     },
 
     updateActiveTab: (data) => {
-        // Проверяем, было ли поле isDirty передано явно. Если нет, ставим true.
-        const isDirty = data.isDirty === undefined ? true : data.isDirty;
         set((state) => ({
             tabs: state.tabs.map((tab) =>
                 tab.id === state.activeTabId
-                    ? { ...tab, ...data, isDirty }
+                    ? // Просто объединяем старые и новые данные.
+                      // Если в `data` есть `isDirty`, он перезапишет старый.
+                      // Если в `data` нет `isDirty`, старый `isDirty` сохранится.
+                      { ...tab, ...data }
                     : tab
             ),
         }));
@@ -228,7 +229,8 @@ export const useTabsStore = create<TabsState>((set, get) => ({
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (!activeTab) return;
 
-        updateActiveTab({ loading: true, response: null, isDirty: false });
+        // При НАЧАЛЕ отправки мы НЕ меняем isDirty. Он остается true, если были изменения.
+        updateActiveTab({ loading: true, response: null });
         const startTime = performance.now();
 
         try {
@@ -375,9 +377,10 @@ export const useTabsStore = create<TabsState>((set, get) => ({
             const endTime = performance.now();
             const requestTime = Math.round(endTime - startTime);
 
-            // Если ошибка уже содержит объект ответа, используем его
+            // Если произошла ошибка, isDirty НЕ меняется.
+            // Мы просто обновляем ответ с информацией об ошибке.
             if (error.response) {
-                updateActiveTab({ response: error.response, isDirty: false });
+                updateActiveTab({ response: error.response });
                 return;
             }
 
@@ -397,8 +400,10 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 time: requestTime,
                 isBase64: false,
             };
-            updateActiveTab({ response: errorResponse, isDirty: false });
+            // Обновляем только ответ, isDirty остается true
+            updateActiveTab({ response: errorResponse });
         } finally {
+            // В любом случае убираем индикатор загрузки.
             updateActiveTab({ loading: false });
         }
     },

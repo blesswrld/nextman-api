@@ -8,6 +8,8 @@ interface EditableTextProps {
     onSave: (newValue: string) => void;
     className?: string;
     inputClassName?: string;
+    onEditStart?: () => void;
+    onEditEnd?: () => void;
 }
 
 export function EditableText({
@@ -15,6 +17,8 @@ export function EditableText({
     onSave,
     className,
     inputClassName,
+    onEditStart, // <-- Получаем коллбэк
+    onEditEnd, // <-- Получаем коллбэк
 }: EditableTextProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [value, setValue] = useState(initialValue);
@@ -27,8 +31,14 @@ export function EditableText({
         }
     }, [isEditing]);
 
+    const handleStartEditing = () => {
+        setIsEditing(true);
+        onEditStart?.(); // <-- Вызываем коллбэк при начале редактирования
+    };
+
     const handleSave = () => {
         setIsEditing(false);
+        onEditEnd?.(); // <-- Вызываем коллбэк при завершении редактирования
         if (value.trim() && value.trim() !== initialValue) {
             onSave(value.trim());
         } else {
@@ -41,6 +51,7 @@ export function EditableText({
         if (e.key === "Escape") {
             setValue(initialValue);
             setIsEditing(false);
+            onEditEnd?.(); // <-- Вызываем коллбэк и здесь
         }
     };
 
@@ -54,12 +65,15 @@ export function EditableText({
                 onBlur={handleSave}
                 onKeyDown={handleKeyDown}
                 className={inputClassName || "h-7 text-sm"}
+                // Останавливаем всплытие события, чтобы клик не закрыл аккордеон
+                onClick={(e) => e.stopPropagation()}
             />
         );
     }
 
     return (
-        <span onDoubleClick={() => setIsEditing(true)} className={className}>
+        // Используем новую функцию для начала редактирования
+        <span onDoubleClick={handleStartEditing} className={className}>
             {initialValue}
         </span>
     );
