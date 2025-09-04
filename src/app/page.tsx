@@ -45,7 +45,15 @@ import { ShareButton } from "@/components/share/share-button";
 import { ManageShares } from "@/components/share/manage-shares";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { useToast } from "@/hooks/use-toast"; // <-- Убедись, что этот импорт есть
+import { useToast } from "@/hooks/use-toast";
+import { Settings } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { SettingsDropdown } from "@/components/core/settings-dropdown";
 
 // --- ДИНАМИЧЕСКИЙ ИМПОРТ РЕДАКТОРА ---
 const CodeEditor = dynamic(
@@ -351,13 +359,17 @@ export default function HomePage() {
                         </h1>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
-                        <LanguageSwitcher />
-                        <ThemeToggle />
-                        <CodeGenerationDialog />
+                        {/* Все главные кнопки */}
                         <EnvironmentManager user={user} />
                         <HistorySidebar user={user} />
-                        <ManageShares user={user} />
                         <ShareButton user={user} />
+
+                        {/* Разделитель */}
+                        <div className="w-px h-6 bg-border mx-2"></div>
+
+                        {/* Наш чистый компонент */}
+                        <SettingsDropdown user={user} />
+
                         <AuthButton />
                     </div>
                 </header>
@@ -401,13 +413,44 @@ export default function HomePage() {
                     <h1 className="text-xl font-bold">{t("header.title")}</h1>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
-                    <LanguageSwitcher />
-                    <ThemeToggle />
-                    <CodeGenerationDialog />
+                    {/* Главные, всегда видимые кнопки */}
                     <EnvironmentManager user={user} />
                     <HistorySidebar user={user} />
-                    <ManageShares user={user} />
                     <ShareButton user={user} />
+
+                    {/* Разделитель */}
+                    <div className="w-px h-6 bg-border mx-2"></div>
+
+                    {/* Выпадающее меню для всего остального */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                title={t("common.settings")}
+                            >
+                                <Settings className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end">
+                            <DropdownMenuGroup>
+                                <div className="p-1">
+                                    <LanguageSwitcher />
+                                </div>
+                                <div className="p-1">
+                                    <ThemeToggle />
+                                </div>
+                                <div className="p-1">
+                                    <CodeGenerationDialog />
+                                </div>
+                                <div className="p-1">
+                                    <ManageShares user={user} />
+                                </div>
+                            </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Аутентификация отдельно */}
                     <AuthButton />
                 </div>
             </header>

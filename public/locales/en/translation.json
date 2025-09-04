@@ -3,7 +3,8 @@
         "title": "Nextman API"
     },
     "auth": {
-        "login_button": "Login with GitHub",
+        "login_button_github": "Login with GitHub",
+        "login_button_google": "Login with Google",
         "logout_button": "Log out"
     },
     "tabs": {
@@ -127,7 +128,8 @@
     },
     "common": {
         "cancel": "Cancel",
-        "delete": "Delete"
+        "delete": "Delete",
+        "settings": "Settings"
     },
     "language_switcher": {
         "english": "English",
