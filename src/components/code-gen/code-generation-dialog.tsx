@@ -37,7 +37,7 @@ export function CodeGenerationDialog() {
         curl: "",
         fetch: "",
         axios: "",
-    }); // Добавляем axios
+    });
     const [copied, setCopied] = useState<"curl" | "fetch" | "axios" | null>(
         null
     );
@@ -87,14 +87,13 @@ export function CodeGenerationDialog() {
         setGeneratedCode({
             curl: generateCurl(input),
             fetch: generateFetch(input),
-            axios: generateAxios(input), // Генерируем axios
+            axios: generateAxios(input),
         });
     };
 
     const handleCopy = (text: string, type: "curl" | "fetch" | "axios") => {
         navigator.clipboard.writeText(text);
-        setCopied(type); // Устанавливаем, что скопировали
-        // Через 1.5 секунды сбрасываем состояние
+        setCopied(type);
         setTimeout(() => {
             setCopied(null);
         }, 1500);
@@ -103,10 +102,10 @@ export function CodeGenerationDialog() {
     return (
         <Dialog onOpenChange={(open) => open && handleGenerateCode()}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                    <Code className="h-4 w-4 mr-2" />
-                    {t("code_generator.button_text")}
-                </Button>
+                <div className="w-full flex justify-between items-center cursor-pointer text-sm">
+                    <span>{t("code_generator.button_text")}</span>
+                    <Code className="h-4 w-4" />
+                </div>
             </DialogTrigger>
             <DialogContent className="max-w-3xl">
                 <DialogHeader>

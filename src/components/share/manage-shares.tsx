@@ -37,6 +37,7 @@ export function ManageShares({ user }: ManageSharesProps) {
     const supabase = createClient();
 
     const fetchRequests = useCallback(async () => {
+        if (!user) return;
         setLoading(true);
         const { data, error } = await supabase
             .from("shared_requests")
@@ -50,7 +51,7 @@ export function ManageShares({ user }: ManageSharesProps) {
             });
         setRequests(data || []);
         setLoading(false);
-    }, [supabase, toast]);
+    }, [supabase, toast, user]);
 
     useEffect(() => {
         if (isOpen && user) {
@@ -121,16 +122,17 @@ export function ManageShares({ user }: ManageSharesProps) {
         }
     };
 
+    // Весь компонент теперь обернут в Sheet, а триггером является наш кастомный div.
     return (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="icon"
+                <div
+                    className="w-full flex justify-between items-center cursor-pointer text-sm"
                     title={t("manage_shares.button_title")}
                 >
+                    <span>{t("manage_shares.button_title")}</span>
                     <LinkIcon className="h-4 w-4" />
-                </Button>
+                </div>
             </SheetTrigger>
             <SheetContent className="w-[400px] sm:w-[540px] flex flex-col">
                 <SheetHeader>

@@ -1,43 +1,29 @@
 "use client";
+
 import { useTranslation } from "react-i18next";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Languages } from "lucide-react";
+import { Languages } from "lucide-react"; // Импортируем иконку
 
 export function LanguageSwitcher() {
     const { t, i18n } = useTranslation();
 
-    const changeLanguage = (lng: "en" | "ru") => {
-        // 1. Меняем язык в i18next
-        i18n.changeLanguage(lng);
-        // 2. Сохраняем выбор в localStorage для будущих сессий
-        localStorage.setItem("i18nextLng", lng);
+    // Переключаем язык по кругу (RU -> EN -> RU)
+    const toggleLanguage = () => {
+        const nextLang = i18n.language === "ru" ? "en" : "ru";
+        i18n.changeLanguage(nextLang);
+        localStorage.setItem("i18nextLng", nextLang);
     };
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    title={t("language_switcher.button_title")}
-                >
-                    <Languages className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => changeLanguage("en")}>
-                    {t("language_switcher.english")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeLanguage("ru")}>
-                    {t("language_switcher.russian")}
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        // Теперь это единый, кликабельный элемент
+        <div
+            className="w-full flex justify-between items-center cursor-pointer text-sm"
+            onClick={toggleLanguage}
+        >
+            <span>{t("language_switcher.button_title")}</span>
+            <div className="flex items-center gap-1 text-muted-foreground">
+                <span>{i18n.language.toUpperCase()}</span>
+                <Languages className="h-4 w-4" />
+            </div>
+        </div>
     );
 }

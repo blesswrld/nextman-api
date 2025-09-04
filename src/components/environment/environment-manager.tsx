@@ -11,7 +11,7 @@ import {
     SelectSeparator,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Settings, PlusCircle, Trash2, LogIn } from "lucide-react";
+import { Layers, PlusCircle, Trash2, LogIn } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -216,7 +216,7 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
                         size="icon"
                         title={t("environments.button_title")}
                     >
-                        <Settings className="h-4 w-4" />
+                        <Layers className="h-4 w-4" />
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
