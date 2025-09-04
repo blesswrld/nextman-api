@@ -48,6 +48,7 @@ import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { EditableText } from "./editable-text";
+import { cn } from "@/lib/utils";
 
 export function CollectionsSidebar() {
     const {
@@ -68,6 +69,11 @@ export function CollectionsSidebar() {
     const [editingRequestId, setEditingRequestId] = useState<string | null>(
         null
     );
+
+    // --- стейт для отслеживания редактирования коллекции ---
+    const [editingCollectionId, setEditingCollectionId] = useState<
+        string | null
+    >(null);
 
     const { t } = useTranslation();
     const { toast } = useToast();
@@ -241,26 +247,35 @@ export function CollectionsSidebar() {
                                             key={collection.id}
                                             value={collection.id}
                                         >
-                                            <div className="flex items-center group pr-2 rounded-md hover:bg-muted justify-between">
+                                            <div className="flex h-full items-center group pr-2 rounded-md hover:bg-muted justify-between mb-2">
                                                 <AccordionTrigger className="px-2 py-0 hover:no-underline text-left justify-start">
                                                     <div className="flex items-center gap-2">
                                                         <Folder className="h-4 w-4" />
-                                                        <EditableText
-                                                            initialValue={
-                                                                collection.name ||
-                                                                ""
+                                                        <div
+                                                            onClick={(e) =>
+                                                                e.stopPropagation()
                                                             }
-                                                            onSave={(newName) =>
-                                                                updateCollection(
-                                                                    collection.id,
-                                                                    {
-                                                                        name: newName,
-                                                                    }
-                                                                )
-                                                            }
-                                                            className="truncate"
-                                                            inputClassName="h-6 text-sm bg-transparent"
-                                                        />
+                                                        >
+                                                            {/* Мы останавливаем всплытие события на этом div. */}
+                                                            <EditableText
+                                                                initialValue={
+                                                                    collection.name ||
+                                                                    ""
+                                                                }
+                                                                onSave={(
+                                                                    newName
+                                                                ) =>
+                                                                    updateCollection(
+                                                                        collection.id,
+                                                                        {
+                                                                            name: newName,
+                                                                        }
+                                                                    )
+                                                                }
+                                                                className="truncate"
+                                                                inputClassName="h-6 text-sm bg-transparent"
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </AccordionTrigger>
                                                 <AlertDialog>

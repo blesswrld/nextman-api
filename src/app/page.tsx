@@ -277,14 +277,16 @@ export default function HomePage() {
 
     // --- Функции для обновления данных в сторе ---
     // Они вызываются дочерними компонентами и обновляют состояние активной вкладки
-    const handleUrlChange = (url: string) => updateActiveTab({ url });
-    const handleMethodChange = (method: string) => updateActiveTab({ method });
+    const handleUrlChange = (url: string) =>
+        updateActiveTab({ url, isDirty: true });
+    const handleMethodChange = (method: string) =>
+        updateActiveTab({ method, isDirty: true });
     const handleBodyChange = (body: string | undefined) =>
-        updateActiveTab({ body: body || "" });
+        updateActiveTab({ body: body || "", isDirty: true });
     const handleQueryParamsChange = (queryParams: KeyValuePair[]) =>
-        updateActiveTab({ queryParams });
+        updateActiveTab({ queryParams, isDirty: true });
     const handleHeadersChange = (headers: KeyValuePair[]) =>
-        updateActiveTab({ headers });
+        updateActiveTab({ headers, isDirty: true });
 
     // --- Если активной вкладки нет (например, все закрыты или при первой загрузке), показываем заглушку ---
     if (!activeTab) {
@@ -403,10 +405,12 @@ export default function HomePage() {
                                         onBlur={(e) => {
                                             const newName =
                                                 e.target.value.trim();
+                                            // Добавляем isDirty: true при изменении имени
                                             updateActiveTab({
                                                 name:
                                                     newName ||
                                                     "tabs.untitled_request",
+                                                isDirty: true,
                                             });
                                             setEditingTabId(null);
                                         }}
@@ -555,8 +559,8 @@ export default function HomePage() {
                                         >
                                             <KeyValueEditor
                                                 pairs={activeTab.queryParams}
-                                                // @ts-ignore
-                                                setPairs={
+                                                // Меняем setPairs на onPairsChange
+                                                onPairsChange={
                                                     handleQueryParamsChange
                                                 }
                                                 placeholderKey={t(
@@ -573,8 +577,10 @@ export default function HomePage() {
                                         >
                                             <KeyValueEditor
                                                 pairs={activeTab.headers}
-                                                // @ts-ignore
-                                                setPairs={handleHeadersChange}
+                                                // Меняем setPairs на onPairsChange
+                                                onPairsChange={
+                                                    handleHeadersChange
+                                                }
                                                 placeholderKey={t(
                                                     "kv_editor.header_key"
                                                 )}
@@ -583,6 +589,7 @@ export default function HomePage() {
                                                 )}
                                             />
                                         </TabsContent>
+
                                         <TabsContent value="auth">
                                             <AuthEditor />
                                         </TabsContent>
