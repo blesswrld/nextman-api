@@ -26,6 +26,32 @@ export const metadata: Metadata = {
                 sizes: "96x96",
                 type: "image/png",
             },
+            // Добавляем иконки Android, которые также могут использоваться как favicon
+            {
+                url: "/favicon/android-icon-36x36.png",
+                sizes: "36x36",
+                type: "image/png",
+            },
+            {
+                url: "/favicon/android-icon-48x48.png",
+                sizes: "48x48",
+                type: "image/png",
+            },
+            {
+                url: "/favicon/android-icon-72x72.png",
+                sizes: "72x72",
+                type: "image/png",
+            },
+            {
+                url: "/favicon/android-icon-96x96.png",
+                sizes: "96x96",
+                type: "image/png",
+            },
+            {
+                url: "/favicon/android-icon-144x144.png",
+                sizes: "144x144",
+                type: "image/png",
+            },
             {
                 url: "/favicon/android-icon-192x192.png",
                 sizes: "192x192",
@@ -47,13 +73,16 @@ export const metadata: Metadata = {
         // Иконка для старых браузеров
         shortcut: ["/favicon/favicon.ico"],
     },
+
     // Манифест
     manifest: "/favicon/manifest.json",
 
     // Мета-теги для Windows Tiles
     other: {
         "msapplication-TileColor": "#ffffff",
+        // Указываем все размеры для Windows Tiles
         "msapplication-TileImage": "/favicon/ms-icon-144x144.png",
+        "msapplication-config": "/favicon/browserconfig.xml", // <-- Добавляем ссылку на browserconfig.xml
     },
 };
 
