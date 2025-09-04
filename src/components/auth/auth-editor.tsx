@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { VariableInput } from "./variable-input";
+import { VariableInput } from "@/components/environment/variable-input";
 import { useTranslation } from "react-i18next";
 import { useCallback } from "react";
 

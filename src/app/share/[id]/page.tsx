@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import {
     ReadOnlyPage,
     ReadOnlyPageSkeleton,
-} from "@/components/read-only-page";
+} from "@/components/share/read-only-page";
 import { Suspense } from "react";
 
 interface SharePageProps {

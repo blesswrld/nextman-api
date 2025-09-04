@@ -1,4 +1,4 @@
-import { KeyValuePair } from "@/components/key-value-editor";
+import { KeyValuePair } from "@/components/core/key-value-editor";
 
 // Тип для входных данных, чтобы генераторы знали, с чем работают
 export interface CodeGenInput {

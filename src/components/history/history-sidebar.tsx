@@ -12,7 +12,7 @@ import {
 import { HistoryItem, getHistory, clearHistory } from "@/lib/history-db";
 import { useTabsStore } from "@/store/tabs";
 import { History, Trash2, LogIn } from "lucide-react";
-import { HistorySkeleton } from "./history-skeleton";
+import { HistorySkeleton } from "@/components/history/history-skeleton";
 import { motion } from "framer-motion";
 import { SheetDescription } from "@/components/ui/sheet";
 import type { User } from "@supabase/supabase-js";

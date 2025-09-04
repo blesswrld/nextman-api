@@ -11,8 +11,8 @@ import {
     SheetDescription,
 } from "@/components/ui/sheet";
 import { Link as LinkIcon, Trash2, Copy, Check, LogIn } from "lucide-react";
-import { EditableText } from "./editable-text";
-import { Skeleton } from "./ui/skeleton";
+import { EditableText } from "@/components/core/editable-text";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/lib/supabase/database.types";

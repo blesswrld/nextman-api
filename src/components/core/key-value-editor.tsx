@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { VariableInput } from "./variable-input"; // <-- Импортируем VariableInput
+import { VariableInput } from "@/components/environment/variable-input"; // <-- Импортируем VariableInput
 
 export interface KeyValuePair {
     id: string;

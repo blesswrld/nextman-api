@@ -3,17 +3,17 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResponseData, RequestTab } from "@/store/tabs";
 import { cn } from "@/lib/utils";
-import { ResponseHeaders } from "@/components/response-headers";
-import { I18nProvider } from "./i18n-provider";
+import { ResponseHeaders } from "@/components/response/response-headers";
+import { I18nProvider } from "@/components/i18n/i18n-provider";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, ServerCrash, Copy, Check } from "lucide-react";
-import { Button } from "./ui/button";
-import { ThemeProvider } from "./theme-provider";
-import { ThemeToggle } from "./theme-toggle";
+import { Button } from "../ui/button";
+import { ThemeProvider } from "../core/theme-provider";
+import { ThemeToggle } from "../core/theme-toggle";
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { LanguageSwitcher } from "./language-switcher";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { LanguageSwitcher } from "../i18n/language-switcher";
 import { useTranslation } from "react-i18next";
 import {
     Tooltip,
@@ -21,6 +21,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import Image from "next/image";
+import { useTheme } from "next-themes";
 
 // --- КОМПОНЕНТ СКЕЛЕТА ЗАГРУЗКИ ---
 export function ReadOnlyPageSkeleton() {
@@ -77,7 +79,7 @@ interface ReadOnlyPageProps {
 
 // --- КОМПОНЕНТЫ, АДАПТИРОВАННЫЕ ДЛЯ READ-ONLY ---
 const CodeEditor = dynamic(
-    () => import("@/components/editor").then((mod) => mod.CodeEditor),
+    () => import("@/components/core/editor").then((mod) => mod.CodeEditor),
     { ssr: false, loading: () => <Skeleton className="w-full h-full" /> }
 );
 
@@ -252,6 +254,20 @@ function SharedRequestViewer({
     const { t } = useTranslation();
     const [isMounted, setIsMounted] = useState(false);
     const [copiedItem, setCopiedItem] = useState<string | null>(null);
+
+    // --- ПОЛУЧАЕМ ТЕКУЩУЮ ТЕМУ ---
+    const { resolvedTheme } = useTheme();
+
+    // --- ДИНАМИЧЕСКИ ВЫБИРАЕМ ПУТЬ К ЛОГОТИПУ ---
+    const logoSrc =
+        resolvedTheme === "dark"
+            ? "/nextman-logo-light.png"
+            : "/nextman-logo-dark.png";
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     const response = requestTab.response;
 
     // --- Эффект для безопасного монтирования на клиенте ---
@@ -311,9 +327,21 @@ function SharedRequestViewer({
                 <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-10">
                     <div className="container mx-auto py-3 flex justify-between items-center">
                         {isMounted ? (
-                            <h1 className="text-xl font-bold">
-                                {t("header.title")}
-                            </h1>
+                            <div className="flex items-center gap-2">
+                                {/*  ЛОГОТИП ЗДЕСЬ */}
+                                {/*  ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ ПУТЬ */}
+                                <Image
+                                    src={logoSrc}
+                                    alt="Nextman Logo"
+                                    className="rounded-sm"
+                                    width={46}
+                                    height={46}
+                                    key={logoSrc}
+                                />
+                                <h1 className="text-xl font-bold">
+                                    {t("header.title")}
+                                </h1>
+                            </div>
                         ) : (
                             <Skeleton className="h-7 w-32" />
                         )}
