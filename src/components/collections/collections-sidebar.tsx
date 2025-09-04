@@ -69,13 +69,11 @@ export function CollectionsSidebar() {
         null
     );
 
-    // --- стейт для отслеживания редактирования коллекции ---
-    const [editingCollectionId, setEditingCollectionId] = useState<
-        string | null
-    >(null);
-
     const { t } = useTranslation();
     const { toast } = useToast();
+
+    // Этот стейт будет true, пока мы не узнаем, залогинен пользователь или нет.
+    const [authLoading, setAuthLoading] = useState(true);
 
     useEffect(() => {
         const supabase = createClient();
@@ -85,13 +83,24 @@ export function CollectionsSidebar() {
                 data: { user },
             } = await supabase.auth.getUser();
             setUser(user);
-            fetchCollections(); // Загружаем коллекции для текущего (возможно, null) пользователя
+
+            // УБИРАЕМ ЗАГРУЗКУ АУТЕНТИФИКАЦИИ
+            // Как только мы получили ответ от getUser(), мы знаем статус пользователя.
+            setAuthLoading(false);
+
+            if (user) {
+                // Загружаем коллекции, только если пользователь есть
+                fetchCollections();
+            }
 
             const { data: authListener } = supabase.auth.onAuthStateChange(
                 (event, session) => {
                     const newUser = session?.user ?? null;
                     setUser(newUser);
-                    fetchCollections(); // Перезагружаем коллекции при смене пользователя
+                    if (newUser) {
+                        // Перезагружаем, если пользователь вошел
+                        fetchCollections();
+                    }
                 }
             );
 
@@ -100,12 +109,7 @@ export function CollectionsSidebar() {
             };
         };
 
-        const unsubscribePromise = getUserAndSetupListener();
-
-        // Отписка при размонтировании
-        return () => {
-            unsubscribePromise.then((unsubscribe) => unsubscribe());
-        };
+        getUserAndSetupListener();
     }, [fetchCollections]);
 
     useEffect(() => {
@@ -220,7 +224,12 @@ export function CollectionsSidebar() {
                 )}
             </div>
             <div className="flex-grow border-t pt-4 overflow-y-auto">
-                {user ? (
+                {/* ДОБАВЛЯЕМ НОВУЮ ПРОВЕРКУ */}
+                {authLoading ? (
+                    // Пока идет проверка аутентификации, показываем скелетон
+                    <CollectionsSkeleton />
+                ) : user ? (
+                    // Если пользователь есть, показываем его данные (или скелетон, если данные грузятся)
                     loading ? (
                         <CollectionsSkeleton />
                     ) : (

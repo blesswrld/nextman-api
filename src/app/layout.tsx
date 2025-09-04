@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/components/i18n/i18n-provider";
 import { ThemeProvider } from "@/components/core/theme-provider";
@@ -6,12 +6,6 @@ import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
     title: "Nextman API, A modern web-based API client",
-
-    // Цвет темы для адресной строки в мобильных браузерах
-    themeColor: [
-        { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-        { media: "(prefers-color-scheme: dark)", color: "#000000" },
-    ],
 
     // Добавляем иконки
     icons: {
@@ -59,8 +53,16 @@ export const metadata: Metadata = {
     // Мета-теги для Windows Tiles
     other: {
         "msapplication-TileColor": "#ffffff",
-        "msapplication-TileImage": "/ms-icon-144x144.png",
+        "msapplication-TileImage": "/favicon/ms-icon-144x144.png",
     },
+};
+
+// --- Viewport ---
+export const viewport: Viewport = {
+    themeColor: [
+        { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+        { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    ],
 };
 
 export default function RootLayout({

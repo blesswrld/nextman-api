@@ -54,6 +54,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SettingsDropdown } from "@/components/core/settings-dropdown";
+// import { Loader } from "@/components/core/loader";
+import { HomePageSkeleton } from "@/components/core/homepage-skeleton";
 
 // --- ДИНАМИЧЕСКИЙ ИМПОРТ РЕДАКТОРА ---
 const CodeEditor = dynamic(
@@ -252,6 +254,9 @@ export default function HomePage() {
         init, // Действие для инициализации
     } = useTabsStore();
 
+    // Этот стейт будет отслеживать, завершилась ли первоначальная инициализация стора
+    const [isStoreInitialized, setIsStoreInitialized] = useState(false);
+
     const { t } = useTranslation();
     const { toast } = useToast();
 
@@ -280,6 +285,11 @@ export default function HomePage() {
 
         const supabase = createClient();
         const getUserAndSetupListener = async () => {
+            if (init) {
+                init();
+                setIsStoreInitialized(true); // <-- Помечаем, что стор готов
+            }
+
             const {
                 data: { user },
             } = await supabase.auth.getUser();
@@ -333,6 +343,25 @@ export default function HomePage() {
             zustandAddTab();
         }
     };
+
+    // Если стор еще не инициализирован ИЛИ нет активной вкладки, показываем лоадер/заглушку
+    if (!isStoreInitialized || !activeTab) {
+        // Если вкладки пусты (например, все закрыты), показываем кнопку
+        if (isStoreInitialized && tabs.length === 0) {
+            return (
+                <div className="flex flex-col h-screen bg-background text-foreground">
+                    <main className="flex items-center justify-center flex-grow">
+                        <Button onClick={handleAddTab}>
+                            {t("main.create_request_button")}
+                        </Button>
+                    </main>
+                </div>
+            );
+        }
+
+        // Показываем полный скелет только при самой первой загрузке
+        return <HomePageSkeleton />;
+    }
 
     // --- Если активной вкладки нет (например, все закрыты или при первой загрузке), показываем заглушку ---
     if (!activeTab) {
