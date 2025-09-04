@@ -97,7 +97,9 @@
         "variable_name_placeholder": "Variable name",
         "variable_value_placeholder": "Variable value",
         "login_prompt_title": "Login to Manage Environments",
-        "login_prompt_description": "Create and manage your environments after logging in."
+        "login_prompt_description": "Create and manage your environments after logging in.",
+        "variables_count_header": "Variables ({{count}}/{{max}})",
+        "environments_count_label": "environments"
     },
     "save_dialog": {
         "title": "Save Request",
@@ -168,7 +170,13 @@
         "update_share_name_error_title": "Error",
         "update_share_name_error_description": "Failed to update name.",
         "share_limit_reached_title": "Limit Reached",
-        "share_limit_reached_description": "You can only have {{max}} active shares. Please delete an old one."
+        "share_limit_reached_description": "You can only have {{max}} active shares. Please delete an old one.",
+        "tab_limit_reached_title": "Tab Limit Reached",
+        "tab_limit_reached_description": "You can open a maximum of {{max}} tabs.",
+        "env_limit_reached_title": "Environment Limit Reached",
+        "env_limit_reached_description": "You can create a maximum of {{max}} environments.",
+        "variable_limit_reached_title": "Variable Limit Reached",
+        "variable_limit_reached_description": "An environment can hold a maximum of {{max}} variables."
     },
     "share_page": {
         "create_your_own": "Create your own",

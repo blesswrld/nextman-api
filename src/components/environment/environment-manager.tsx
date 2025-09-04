@@ -41,6 +41,10 @@ import debounce from "lodash.debounce";
 import type { User } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
+
+const MAX_ENVIRONMENTS = 20; // Лимит окружений
+const MAX_VARIABLES_PER_ENV = 50; // Лимит переменных
 
 interface EnvironmentManagerProps {
     user: User | null;
@@ -59,6 +63,7 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
     } = useEnvironmentsStore();
 
     const { t } = useTranslation();
+    const { toast } = useToast();
 
     const [isManageOpen, setIsManageOpen] = useState(false);
     const [selectedEnvForEditing, setSelectedEnvForEditing] = useState<
@@ -73,6 +78,11 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
         (e) => e.id === selectedEnvForEditing
     );
 
+    // Считаем активные (заполненные) переменные для отображения в заголовке
+    const activeVariablesCount = localVariables.filter(
+        (v) => v.key.trim() !== ""
+    ).length;
+
     useEffect(() => {
         // Запускаем fetchEnvironments при монтировании и при изменении состояния пользователя.
         // Стор сам обработает случай, когда user === null и очистит данные.
@@ -82,23 +92,40 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
     // Эффект для синхронизации локального состояния (localVariables) с глобальным (editableEnv),
     // когда пользователь выбирает другое окружение для редактирования.
     useEffect(() => {
-        const pairs = editableEnv?.variables
-            ? Object.entries(
-                  editableEnv.variables as Record<string, string>
-              ).map(([key, value]) => ({ id: crypto.randomUUID(), key, value }))
-            : [];
+        // Проверяем, что editableEnv.variables - это объект, а не null или строка
+        const variablesObject =
+            editableEnv?.variables && typeof editableEnv.variables === "object"
+                ? editableEnv.variables
+                : {};
+
+        const pairs = Object.entries(
+            variablesObject as Record<string, string>
+        ).map(([key, value]) => ({ id: crypto.randomUUID(), key, value }));
+
         pairs.push({ id: crypto.randomUUID(), key: "", value: "" });
         setLocalVariables(pairs);
     }, [editableEnv]);
 
     const handleCreate = () => {
+        // Проверяем лимит перед созданием
+        if (environments.length >= MAX_ENVIRONMENTS) {
+            toast({
+                title: t("toasts.env_limit_reached_title"),
+                description: t("toasts.env_limit_reached_description", {
+                    max: MAX_ENVIRONMENTS,
+                }),
+                variant: "destructive",
+            });
+            return;
+        }
+
         if (newEnvName.trim()) {
             createEnvironment(newEnvName.trim());
             setNewEnvName("");
         }
     };
 
-    // Создаем debounced-версию функции обновления, которая будет вызываться не чаще, чем раз в 3 секунды
+    // Создаем debounced-версию функции обновления, которая будет вызываться не чаще, чем раз в 1.5 секунды
     const debouncedSave = useCallback(
         debounce((envId: string, vars: KeyValuePair[]) => {
             const variablesObj = vars.reduce((acc, pair) => {
@@ -108,11 +135,32 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
                 return acc;
             }, {} as Record<string, string>);
             updateEnvironment(envId, variablesObj);
-        }, 3000),
-        []
+        }, 1500),
+        [updateEnvironment]
     );
 
     const handleVariablesChange = (newPairs: KeyValuePair[]) => {
+        const oldActiveCount = localVariables.filter(
+            (v) => v.key.trim() !== ""
+        ).length;
+        const newActiveCount = newPairs.filter(
+            (v) => v.key.trim() !== ""
+        ).length;
+
+        if (
+            newActiveCount > oldActiveCount &&
+            newActiveCount > MAX_VARIABLES_PER_ENV
+        ) {
+            toast({
+                title: t("toasts.variable_limit_reached_title"),
+                description: t("toasts.variable_limit_reached_description", {
+                    max: MAX_VARIABLES_PER_ENV,
+                }),
+                variant: "destructive",
+            });
+            return;
+        }
+
         // 1. Обновляем локальное состояние МГНОВЕННО, чтобы UI был отзывчивым.
         setLocalVariables(newPairs);
 
@@ -185,25 +233,37 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
                         <div className="flex-grow grid grid-cols-3 gap-4 overflow-hidden">
                             {/* Левая панель: список окружений */}
                             <div className="col-span-1 border-r pr-4 flex flex-col">
-                                <div className="flex gap-2 mb-2 p-1">
-                                    <Input
-                                        value={newEnvName}
-                                        onChange={(e) =>
-                                            setNewEnvName(e.target.value)
-                                        }
-                                        placeholder={t(
-                                            "environments.new_placeholder"
+                                <div className="flex-shrink-0 flex flex-col gap-2 mb-2 p-1">
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={newEnvName}
+                                            onChange={(e) =>
+                                                setNewEnvName(e.target.value)
+                                            }
+                                            placeholder={t(
+                                                "environments.new_placeholder"
+                                            )}
+                                            className="h-9"
+                                            onClick={handleCreate}
+                                        />
+                                        <Button
+                                            size="icon"
+                                            onClick={handleCreate}
+                                            className="flex-shrink-0"
+                                        >
+                                            <PlusCircle className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    {/* ДОБАВЛЯЕМ СЧЕТЧИК ОКРУЖЕНИЙ */}
+                                    <p className="text-xs text-muted-foreground text-right px-1">
+                                        {environments.length} /{" "}
+                                        {MAX_ENVIRONMENTS}{" "}
+                                        {t(
+                                            "environments.environments_count_label"
                                         )}
-                                        className="h-9"
-                                    />
-                                    <Button
-                                        size="icon"
-                                        onClick={handleCreate}
-                                        className="flex-shrink-0"
-                                    >
-                                        <PlusCircle className="h-4 w-4" />
-                                    </Button>
+                                    </p>
                                 </div>
+
                                 <div className="flex-grow overflow-y-auto">
                                     {environments.map((env) => (
                                         <div
@@ -272,18 +332,38 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
                             </div>
 
                             {/* Правая панель: редактор переменных */}
-                            <div className="col-span-2 overflow-y-auto">
+                            <div className="col-span-2 flex flex-col overflow-y-hidden">
                                 {editableEnv ? (
-                                    <KeyValueEditor
-                                        pairs={localVariables}
-                                        onPairsChange={handleVariablesChange}
-                                        placeholderKey={t(
-                                            "environments.variable_name_placeholder"
-                                        )}
-                                        placeholderValue={t(
-                                            "environments.variable_value_placeholder"
-                                        )}
-                                    />
+                                    <>
+                                        <h3 className="text-md font-semibold mb-2 px-1 flex-shrink-0">
+                                            {t(
+                                                "environments.variables_count_header",
+                                                {
+                                                    count: activeVariablesCount,
+                                                    max: MAX_VARIABLES_PER_ENV,
+                                                }
+                                            )}
+                                        </h3>
+                                        <div className="flex-grow overflow-y-auto">
+                                            <KeyValueEditor
+                                                pairs={localVariables}
+                                                onPairsChange={
+                                                    handleVariablesChange
+                                                }
+                                                placeholderKey={t(
+                                                    "environments.variable_name_placeholder"
+                                                )}
+                                                placeholderValue={t(
+                                                    "environments.variable_value_placeholder"
+                                                )}
+                                                // --- ПЕРЕДАЕМ ПРОП ---
+                                                disabled={
+                                                    activeVariablesCount >=
+                                                    MAX_VARIABLES_PER_ENV
+                                                }
+                                            />
+                                        </div>
+                                    </>
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-muted-foreground">
                                         {t("environments.select_to_edit")}

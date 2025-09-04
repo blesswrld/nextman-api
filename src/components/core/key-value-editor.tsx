@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { VariableInput } from "@/components/environment/variable-input"; // <-- Импортируем VariableInput
+import { cn } from "@/lib/utils";
 
 export interface KeyValuePair {
     id: string;
@@ -16,6 +17,7 @@ interface KeyValueEditorProps {
     onPairsChange: (newPairs: KeyValuePair[]) => void;
     placeholderKey?: string;
     placeholderValue?: string;
+    disabled?: boolean;
 }
 
 export function KeyValueEditor({
@@ -23,6 +25,7 @@ export function KeyValueEditor({
     onPairsChange,
     placeholderKey = "Key",
     placeholderValue = "Value",
+    disabled = false, // <-- ЗАДАЕМ ЗНАЧЕНИЕ ПО УМОЛЧАНИЮ
 }: KeyValueEditorProps) {
     const handleFieldChange = (
         id: string,
@@ -63,7 +66,14 @@ export function KeyValueEditor({
                         onChange={(e) =>
                             handleFieldChange(pair.id, "key", e.target.value)
                         }
-                        className="font-mono text-sm"
+                        className={cn(
+                            "font-mono text-sm",
+                            // Если поле заблокировано, убираем кольцо фокуса
+                            disabled &&
+                                index === pairs.length - 1 &&
+                                "focus-visible:ring-0 focus-visible:ring-offset-0"
+                        )}
+                        disabled={disabled && index === pairs.length - 1}
                     />
                     <VariableInput
                         placeholder={placeholderValue}
@@ -71,7 +81,13 @@ export function KeyValueEditor({
                         onChange={(e) =>
                             handleFieldChange(pair.id, "value", e.target.value)
                         }
-                        className="font-mono text-sm"
+                        className={cn(
+                            "font-mono text-sm",
+                            disabled &&
+                                index === pairs.length - 1 &&
+                                "focus-visible:ring-0 focus-visible:ring-offset-0"
+                        )}
+                        disabled={disabled && index === pairs.length - 1}
                     />
                     <Button
                         variant="ghost"
