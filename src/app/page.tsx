@@ -45,6 +45,7 @@ import { ShareButton } from "@/components/share/share-button";
 import { ManageShares } from "@/components/share/manage-shares";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { useToast } from "@/hooks/use-toast"; // <-- Убедись, что этот импорт есть
 
 // --- ДИНАМИЧЕСКИЙ ИМПОРТ РЕДАКТОРА ---
 const CodeEditor = dynamic(
@@ -228,12 +229,14 @@ function ResponsePreview({ response }: { response: ResponseData }) {
     );
 }
 
+const MAX_TABS = 100; // <-- ОБЪЯВЛЯЕМ ЛИМИТ ЗДЕСЬ
+
 export default function HomePage() {
     // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
     const {
         tabs,
         activeTabId,
-        addTab,
+        addTab: zustandAddTab, // <--- Переименовываем
         closeTab,
         setActiveTab,
         updateActiveTab,
@@ -242,6 +245,7 @@ export default function HomePage() {
     } = useTabsStore();
 
     const { t } = useTranslation();
+    const { toast } = useToast();
 
     const [user, setUser] = useState<User | null>(null);
     const [editingTabId, setEditingTabId] = useState<string | null>(null);
@@ -305,6 +309,23 @@ export default function HomePage() {
     const handleHeadersChange = (headers: KeyValuePair[]) =>
         updateActiveTab({ headers, isDirty: true });
 
+    // --- ФУНКЦИЯ-ОБЕРТКА ---
+    const handleAddTab = () => {
+        // Проверяем лимит здесь, в компоненте
+        if (tabs.length >= MAX_TABS) {
+            toast({
+                title: t("toasts.tab_limit_reached_title"),
+                description: t("toasts.tab_limit_reached_description", {
+                    max: MAX_TABS,
+                }),
+                variant: "destructive",
+            });
+        } else {
+            // Если лимита нет, вызываем оригинальную функцию из стора
+            zustandAddTab();
+        }
+    };
+
     // --- Если активной вкладки нет (например, все закрыты или при первой загрузке), показываем заглушку ---
     if (!activeTab) {
         return (
@@ -342,7 +363,7 @@ export default function HomePage() {
                 </header>
                 <main className="flex items-center justify-center flex-grow">
                     {/* Кнопка "Создать запрос" появляется, если все вкладки были закрыты */}
-                    <Button onClick={() => addTab()}>
+                    <Button onClick={handleAddTab}>
                         {t("main.create_request_button")}
                     </Button>
                 </main>
@@ -392,7 +413,7 @@ export default function HomePage() {
             </header>
 
             {/* Панель с вкладками запросов */}
-            <div className="flex items-center border-b bg-muted/40 p-1 gap-1 overflow-x-auto">
+            <div className="flex items-center border-b bg-muted/40 p-1 gap-1 overflow-x-auto overflow-y-hidden">
                 {tabs.map((tab) => {
                     const displayName =
                         tab.name === "tabs.untitled_request"
@@ -511,10 +532,16 @@ export default function HomePage() {
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 flex-shrink-0"
-                    onClick={() => addTab()}
+                    onClick={() => handleAddTab()}
+                    disabled={tabs.length >= MAX_TABS}
                 >
                     <Plus className="h-4 w-4" />
                 </Button>
+
+                {/* Добавляем счетчик и используем нашу функцию-обертку */}
+                <span className="text-xs text-muted-foreground ml-2">
+                    ({tabs.length}/{MAX_TABS})
+                </span>
             </div>
 
             {/* Главная структура с сайдбаром коллекций и основной рабочей областью */}

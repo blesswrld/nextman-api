@@ -76,3 +76,12 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Глобально убираем кольцо фокуса для всех инпутов */
+input:focus-visible {
+    outline: none;
+    --tw-ring-offset-shadow: 0 0 #0000;
+    --tw-ring-shadow: 0 0 #0000;
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow),
+        var(--tw-shadow, 0 0 #0000);
+}

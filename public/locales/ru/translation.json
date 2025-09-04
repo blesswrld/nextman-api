@@ -97,7 +97,9 @@
         "variable_name_placeholder": "Имя переменной",
         "variable_value_placeholder": "Значение переменной",
         "login_prompt_title": "Войдите для управления окружениями",
-        "login_prompt_description": "Создавайте и управляйте окружениями после входа в систему."
+        "login_prompt_description": "Создавайте и управляйте окружениями после входа в систему.",
+        "variables_count_header": "Переменные ({{count}}/{{max}})",
+        "environments_count_label": "Окружений"
     },
     "save_dialog": {
         "title": "Сохранить запрос",
@@ -168,7 +170,13 @@
         "update_share_name_error_title": "Ошибка",
         "update_share_name_error_description": "Не удалось обновить имя.",
         "share_limit_reached_title": "Достигнут лимит",
-        "share_limit_reached_description": "У вас может быть не более {{max}} активных ссылок. Пожалуйста, удалите старую."
+        "share_limit_reached_description": "У вас может быть не более {{max}} активных ссылок. Пожалуйста, удалите старую.",
+        "tab_limit_reached_title": "Достигнут лимит вкладок",
+        "tab_limit_reached_description": "Вы можете открыть не более {{max}} вкладок.",
+        "env_limit_reached_title": "Достигнут лимит окружений",
+        "env_limit_reached_description": "Вы можете создать не более {{max}} окружений.",
+        "variable_limit_reached_title": "Достигнут лимит переменных",
+        "variable_limit_reached_description": "Окружение может содержать не более {{max}} переменных."
     },
     "share_page": {
         "create_your_own": "Создать свой",

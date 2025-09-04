@@ -2,8 +2,10 @@ import { create } from "zustand";
 import { KeyValuePair } from "@/components/core/key-value-editor";
 import { addHistoryItem } from "@/lib/history-db";
 import { createClient } from "@/lib/supabase/client";
-import i18n from "../../i18n"; // <-- ИМПОРТ
+import i18n from "@/../i18n"; // <-- ИМПОРТ
 import { useEnvironmentsStore } from "./environments";
+
+const MAX_TABS = 100; // <-- ОБЪЯВЛЯЕМ КОНСТАНТУ ЛИМИТА
 
 export interface AuthState {
     type: AuthType;
@@ -178,6 +180,14 @@ export const useTabsStore = create<TabsState>((set, get) => ({
     },
 
     addTab: (data?: Partial<RequestTab>) => {
+        // Получаем текущее состояние
+        const state = get();
+        // Проверяем, не достигнут ли лимит
+        if (state.tabs.length >= MAX_TABS) {
+            console.warn(`Tab limit of ${MAX_TABS} reached.`);
+            return; // Просто выходим из функции, не добавляя новую вкладку
+        }
+
         const newTab = createNewTab(data);
         set((state) => ({
             tabs: [...state.tabs, newTab],
