@@ -10,7 +10,7 @@ import {
     SelectValue,
     SelectSeparator,
 } from "@/components/ui/select";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { Settings, PlusCircle, Trash2, LogIn } from "lucide-react";
 import {
     Dialog,
@@ -20,8 +20,11 @@ import {
     DialogTrigger,
     DialogDescription,
 } from "@/components/ui/dialog";
-import { Input } from "./ui/input";
-import { KeyValueEditor, KeyValuePair } from "./key-value-editor";
+import { Input } from "@/components/ui/input";
+import {
+    KeyValueEditor,
+    KeyValuePair,
+} from "@/components/core/key-value-editor";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -33,7 +36,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import debounce from "lodash.debounce";
 import type { User } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";

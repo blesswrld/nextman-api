@@ -10,7 +10,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Input } from "./ui/input";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";

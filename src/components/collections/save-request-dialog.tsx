@@ -24,7 +24,7 @@ import { DialogDescription } from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
-import { Input } from "./ui/input";
+import { Input } from "@/components/ui/input";
 
 const MAX_REQUESTS_PER_COLLECTION = 100;
 

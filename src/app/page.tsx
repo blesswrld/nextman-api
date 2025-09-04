@@ -14,36 +14,41 @@ import {
     ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { KeyValueEditor, KeyValuePair } from "@/components/key-value-editor";
+import {
+    KeyValueEditor,
+    KeyValuePair,
+} from "@/components/core/key-value-editor";
 import { useTabsStore, ResponseData } from "@/store/tabs";
 import { cn } from "@/lib/utils";
 import { X, Plus, ExternalLink } from "lucide-react";
-import { HistorySidebar } from "@/components/history-sidebar";
+import { HistorySidebar } from "@/components/history/history-sidebar";
 import { useEffect, useState } from "react";
-import { ResponseHeaders } from "@/components/response-headers";
-import { AuthButton } from "@/components/auth-button";
-import { CollectionsSidebar } from "@/components/collections-sidebar";
-import { SaveRequestDialog } from "@/components/save-request-dialog";
+import { ResponseHeaders } from "@/components/response/response-headers";
+import { AuthButton } from "@/components/auth/auth-button";
+import { CollectionsSidebar } from "@/components/collections/collections-sidebar";
+import { SaveRequestDialog } from "@/components/collections/save-request-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { useHotkeys } from "@/hooks/use-hotkeys"; // <-- Импорт
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/language-switcher";
-import { EnvironmentManager } from "@/components/environment-manager";
-import { CodeGenerationDialog } from "@/components/code-generation-dialog";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { VariableInput } from "@/components/variable-input";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { EnvironmentManager } from "@/components/environment/environment-manager";
+import { CodeGenerationDialog } from "@/components/code-gen/code-generation-dialog";
+import { ThemeToggle } from "@/components/core/theme-toggle";
+import { VariableInput } from "@/components/environment/variable-input";
 import { Input } from "@/components/ui/input";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AuthEditor } from "@/components/auth-editor";
-import { ShareButton } from "@/components/share-button";
-import { ManageShares } from "@/components/manage-shares";
+import { AuthEditor } from "@/components/auth/auth-editor";
+import { ShareButton } from "@/components/share/share-button";
+import { ManageShares } from "@/components/share/manage-shares";
+import Image from "next/image";
+import { useTheme } from "next-themes";
 
 // --- ДИНАМИЧЕСКИЙ ИМПОРТ РЕДАКТОРА ---
 const CodeEditor = dynamic(
-    () => import("@/components/editor").then((mod) => mod.CodeEditor),
+    () => import("@/components/core/editor").then((mod) => mod.CodeEditor),
     {
         ssr: false, // <-- Говорим Next.js НЕ рендерить этот компонент на сервере
         loading: () => <Skeleton className="w-full h-full" />, // Показываем скелетон, пока редактор грузится
@@ -241,6 +246,18 @@ export default function HomePage() {
     const [user, setUser] = useState<User | null>(null);
     const [editingTabId, setEditingTabId] = useState<string | null>(null);
 
+    // Используем тот же паттерн `isMounted`, что и для ReadOnlyPage
+    const [isMounted, setIsMounted] = useState(false);
+    const { resolvedTheme } = useTheme();
+    const logoSrc =
+        resolvedTheme === "dark"
+            ? "/nextman-logo-light.png"
+            : "/nextman-logo-dark.png";
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     // Добавляем горячую клавишу
     useHotkeys([["ctrl+enter", () => sendRequest()]]);
     useHotkeys([["cmd+enter", () => sendRequest()]]); // Для Mac
@@ -293,7 +310,25 @@ export default function HomePage() {
         return (
             <div className="flex flex-col h-screen bg-background text-foreground">
                 <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
-                    <h1 className="text-xl font-bold">{t("header.title")}</h1>
+                    <div className="flex items-center gap-2">
+                        {/* ЛОГОТИП ЗДЕСЬ */}
+                        {/* ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ ПУТЬ */}
+                        {isMounted ? (
+                            <Image
+                                src={logoSrc}
+                                alt="Nextman Logo"
+                                width={46}
+                                height={46}
+                                key={logoSrc} // Добавляем key, чтобы React точно перерендерил <img> при смене src
+                            />
+                        ) : (
+                            // Показываем скелетон, пока не определена тема
+                            <div className="skeleton w-7 h-7 rounded-sm"></div>
+                        )}
+                        <h1 className="text-xl font-bold">
+                            {t("header.title")}
+                        </h1>
+                    </div>
                     <div className="flex items-center gap-2">
                         <LanguageSwitcher />
                         <ThemeToggle />
@@ -328,7 +363,22 @@ export default function HomePage() {
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
             <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
-                <h1 className="text-xl font-bold">{t("header.title")}</h1>
+                <div className="flex items-center gap-2">
+                    {/* ЛОГОТИП ЗДЕСЬ */}
+                    {/* ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ ПУТЬ И ЗДЕСЬ */}
+                    {isMounted ? (
+                        <Image
+                            src={logoSrc}
+                            alt="Nextman Logo"
+                            width={46}
+                            height={46}
+                            key={logoSrc}
+                        />
+                    ) : (
+                        <div className="skeleton w-7 h-7 rounded-sm"></div>
+                    )}
+                    <h1 className="text-xl font-bold">{t("header.title")}</h1>
+                </div>
                 <div className="flex items-center gap-2">
                     <LanguageSwitcher />
                     <ThemeToggle />
@@ -372,7 +422,6 @@ export default function HomePage() {
                                         <motion.span
                                             initial={{ scale: 0, opacity: 0 }}
                                             animate={{ scale: 1, opacity: 1 }}
-                                            exit={{ scale: 0, opacity: 0 }}
                                             transition={{ duration: 0.2 }}
                                             className="mr-2 h-2 w-2 rounded-full bg-blue-500 flex-shrink-0"
                                         />

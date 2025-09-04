@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
     PlusCircle,
     Folder,
@@ -42,13 +42,12 @@ import { Label } from "@/components/ui/label";
 import { CollectionsSkeleton } from "./collections-skeleton";
 import { motion } from "framer-motion";
 import { DialogDescription } from "@/components/ui/dialog";
-import { KeyValuePair } from "./key-value-editor";
+import { KeyValuePair } from "@/components/core/key-value-editor";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
-import { EditableText } from "./editable-text";
-import { cn } from "@/lib/utils";
+import { EditableText } from "@/components/core/editable-text";
 
 export function CollectionsSidebar() {
     const {

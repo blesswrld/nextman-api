@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { KeyValuePair } from "@/components/key-value-editor";
+import { KeyValuePair } from "@/components/core/key-value-editor";
 import { addHistoryItem } from "@/lib/history-db";
 import { createClient } from "@/lib/supabase/client";
 import i18n from "../../i18n"; // <-- ИМПОРТ
