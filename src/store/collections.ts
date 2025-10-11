@@ -4,13 +4,11 @@ import { create } from "zustand";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/lib/supabase/database.types";
 
-// --- ТИПЫ ---
 type Collection = Database["public"]["Tables"]["collections"]["Row"];
 type CollectionUpdate = Database["public"]["Tables"]["collections"]["Update"];
 export type SavedRequest = Database["public"]["Tables"]["requests"]["Row"];
 type RequestUpdate = Database["public"]["Tables"]["requests"]["Update"];
 
-// Расширенный тип для удобства работы в UI, где у коллекции есть вложенные запросы
 export type CollectionWithRequests = Collection & {
     requests: SavedRequest[];
 };
@@ -29,7 +27,6 @@ interface CollectionsState {
     ) => Promise<void>;
     deleteCollection: (collectionId: string) => Promise<void>;
     deleteRequest: (requestId: string) => Promise<void>;
-    // Используем общие имена функций для обновления
     updateCollection: (
         collectionId: string,
         updates: CollectionUpdate
@@ -79,7 +76,7 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => ({
             .from("collections")
             // @ts-ignore
             .insert({ name, user_id: user.id })
-            .select("*, requests(*)") // Получаем пустой массив requests
+            .select("*, requests(*)")
             .single();
 
         if (error) {
@@ -113,7 +110,6 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => ({
             console.error("Error saving request:", error);
             return;
         }
-        // После сохранения просто перезагружаем все данные, чтобы UI был консистентным
         get().fetchCollections();
     },
 
@@ -129,7 +125,6 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => ({
             return;
         }
 
-        // Обновляем состояние локально для мгновенного отклика UI
         set((state) => ({
             collections: state.collections.filter((c) => c.id !== collectionId),
         }));
@@ -147,7 +142,6 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => ({
             return;
         }
 
-        // Обновляем состояние локально
         set((state) => ({
             collections: state.collections.map((c) => ({
                 ...c,
@@ -163,7 +157,7 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => ({
             // @ts-ignore
             .update(updates)
             .eq("id", collectionId)
-            .select("*, requests(*)") // Возвращаем с запросами для консистентности
+            .select("*, requests(*)")
             .single();
         if (error) {
             console.error("Error updating collection:", error);

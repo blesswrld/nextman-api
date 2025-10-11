@@ -22,11 +22,9 @@ export function EditableTab({ initialName, onNameChange }: EditableTabProps) {
 
     const handleBlur = () => {
         setIsEditing(false);
-        // Сохраняем, только если имя не пустое
         if (name.trim()) {
             onNameChange(name);
         } else {
-            // Если оставили пустым, возвращаем старое значение
             setName(initialName);
         }
     };
@@ -36,7 +34,7 @@ export function EditableTab({ initialName, onNameChange }: EditableTabProps) {
             handleBlur();
         }
         if (e.key === "Escape") {
-            setName(initialName); // Отменяем изменения
+            setName(initialName);
             setIsEditing(false);
         }
     };

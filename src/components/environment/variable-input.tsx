@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useEnvironmentsStore } from "@/store/environments";
 
-// Мы получаем тип пропсов напрямую из компонента Input
 type InputProps = React.ComponentPropsWithoutRef<typeof Input>;
 
 export function VariableInput(props: InputProps) {

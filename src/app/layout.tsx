@@ -7,9 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 export const metadata: Metadata = {
     title: "Nextman API, A modern web-based API client",
 
-    // Добавляем иконки
     icons: {
-        // Стандартные иконки для вкладок браузера
         icon: [
             {
                 url: "/favicon/favicon-16x16.png",
@@ -26,7 +24,6 @@ export const metadata: Metadata = {
                 sizes: "96x96",
                 type: "image/png",
             },
-            // Добавляем иконки Android, которые также могут использоваться как favicon
             {
                 url: "/favicon/android-icon-36x36.png",
                 sizes: "36x36",
@@ -58,7 +55,6 @@ export const metadata: Metadata = {
                 type: "image/png",
             },
         ],
-        // Иконки для Apple-устройств
         apple: [
             { url: "/favicon/apple-icon-57x57.png", sizes: "57x57" },
             { url: "/favicon/apple-icon-60x60.png", sizes: "60x60" },
@@ -70,23 +66,18 @@ export const metadata: Metadata = {
             { url: "/favicon/apple-icon-152x152.png", sizes: "152x152" },
             { url: "/favicon/apple-icon-180x180.png", sizes: "180x180" },
         ],
-        // Иконка для старых браузеров
         shortcut: ["/favicon/favicon.ico"],
     },
 
-    // Манифест
     manifest: "/favicon/manifest.json",
 
-    // Мета-теги для Windows Tiles
     other: {
         "msapplication-TileColor": "#ffffff",
-        // Указываем все размеры для Windows Tiles
         "msapplication-TileImage": "/favicon/ms-icon-144x144.png",
-        "msapplication-config": "/favicon/browserconfig.xml", // <-- Добавляем ссылку на browserconfig.xml
+        "msapplication-config": "/favicon/browserconfig.xml",
     },
 };
 
-// --- Viewport ---
 export const viewport: Viewport = {
     themeColor: [
         { media: "(prefers-color-scheme: light)", color: "#ffffff" },

@@ -5,17 +5,17 @@
 @layer base {
     :root {
         /* Светлая тема */
-        --background: 0 0% 100%; /* Чистый белый фон */
-        --foreground: 0 0% 3.9%; /* Почти черный текст */
+        --background: 0 0% 100%;
+        --foreground: 0 0% 3.9%;
 
-        --card: 0 0% 100%; /* Карточки на том же белом фоне */
+        --card: 0 0% 100%;
         --card-foreground: 0 0% 3.9%;
 
         --popover: 0 0% 100%;
         --popover-foreground: 0 0% 3.9%;
 
-        --primary: 0 0% 9%; /* Основная кнопка - черная */
-        --primary-foreground: 0 0% 98%; /* Текст на ней - почти белый */
+        --primary: 0 0% 9%;
+        --primary-foreground: 0 0% 98%;
 
         /* ПЕРЕМЕННЫЕ ДЛЯ КНОПОК ВХОДА */
         --login: 0 0% 100%;
@@ -27,35 +27,35 @@
         --secondary: 210 40% 96.1%;
         --secondary-foreground: 222.2 47.4% 11.2%;
 
-        --muted: 0 0% 96.1%; /* Приглушенный фон - светло-серый */
-        --muted-foreground: 0 0% 45.1%; /* Приглушенный текст - темно-серый */
+        --muted: 0 0% 96.1%;
+        --muted-foreground: 0 0% 45.1%;
 
-        --accent: 0 0% 96.1%; /* Акцентный фон при наведении - светло-серый */
+        --accent: 0 0% 96.1%;
         --accent-foreground: 0 0% 9%;
 
-        --destructive: 0 84.2% 60.2%; /* Оставим красный для ошибок, это стандарт UX */
+        --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 0 0% 98%;
 
-        --border: 0 0% 89.8%; /* Границы - светло-серые */
-        --input: 0 0% 89.8%; /* Поля ввода */
-        --ring: 0 0% 3.9%; /* Кольцо фокуса - черное */
+        --border: 0 0% 89.8%;
+        --input: 0 0% 89.8%;
+        --ring: 0 0% 3.9%;
 
         --radius: 0.5rem;
     }
 
     .dark {
         /* Темная тема */
-        --background: 0 0% 3.9%; /* Почти черный фон */
-        --foreground: 0 0% 98%; /* Почти белый текст */
+        --background: 0 0% 3.9%;
+        --foreground: 0 0% 98%;
 
-        --card: 0 0% 3.9%; /* Карточки на том же фоне */
+        --card: 0 0% 3.9%;
         --card-foreground: 0 0% 98%;
 
         --popover: 0 0% 3.9%;
         --popover-foreground: 0 0% 98%;
 
-        --primary: 0 0% 98%; /* Основная кнопка - белая */
-        --primary-foreground: 0 0% 9%; /* Текст на ней - черный */
+        --primary: 0 0% 98%;
+        --primary-foreground: 0 0% 9%;
 
         /* ПЕРЕМЕННЫЕ ДЛЯ КНОПОК ВХОДА */
         --login: 0 0% 9%;
@@ -68,17 +68,17 @@
         --secondary-foreground: 210 40% 98%;
 
         --muted: 0 0% 14.9%;
-        --muted-foreground: 0 0% 63.9%; /* Приглушенный текст - светло-серый */
+        --muted-foreground: 0 0% 63.9%;
 
         --accent: 0 0% 14.9%;
         --accent-foreground: 0 0% 98%;
 
-        --destructive: 0 62.8% 30.6%; /* Красный для ошибок */
+        --destructive: 0 62.8% 30.6%;
         --destructive-foreground: 0 0% 98%;
 
-        --border: 0 0% 14.9%; /* Границы - очень темные серые */
+        --border: 0 0% 14.9%;
         --input: 0 0% 14.9%;
-        --ring: 0 0% 83.1%; /* Кольцо фокуса - светлое */
+        --ring: 0 0% 83.1%;
     }
 }
 

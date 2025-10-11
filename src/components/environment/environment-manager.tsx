@@ -43,8 +43,8 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 
-const MAX_ENVIRONMENTS = 20; // Лимит окружений
-const MAX_VARIABLES_PER_ENV = 50; // Лимит переменных
+const MAX_ENVIRONMENTS = 20;
+const MAX_VARIABLES_PER_ENV = 50;
 
 interface EnvironmentManagerProps {
     user: User | null;
@@ -71,28 +71,21 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
     >(null);
     const [newEnvName, setNewEnvName] = useState("");
 
-    // Хранит "рабочую копию" переменных для редактирования, чтобы не дергать глобальный стор на каждое нажатие.
     const [localVariables, setLocalVariables] = useState<KeyValuePair[]>([]);
 
     const editableEnv = environments.find(
         (e) => e.id === selectedEnvForEditing
     );
 
-    // Считаем активные (заполненные) переменные для отображения в заголовке
     const activeVariablesCount = localVariables.filter(
         (v) => v.key.trim() !== ""
     ).length;
 
     useEffect(() => {
-        // Запускаем fetchEnvironments при монтировании и при изменении состояния пользователя.
-        // Стор сам обработает случай, когда user === null и очистит данные.
         fetchEnvironments();
     }, [fetchEnvironments, user]);
 
-    // Эффект для синхронизации локального состояния (localVariables) с глобальным (editableEnv),
-    // когда пользователь выбирает другое окружение для редактирования.
     useEffect(() => {
-        // Проверяем, что editableEnv.variables - это объект, а не null или строка
         const variablesObject =
             editableEnv?.variables && typeof editableEnv.variables === "object"
                 ? editableEnv.variables
@@ -107,7 +100,6 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
     }, [editableEnv]);
 
     const handleCreate = () => {
-        // Проверяем лимит перед созданием
         if (environments.length >= MAX_ENVIRONMENTS) {
             toast({
                 title: t("toasts.env_limit_reached_title"),
@@ -125,7 +117,6 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
         }
     };
 
-    // Создаем debounced-версию функции обновления, которая будет вызываться не чаще, чем раз в 1.5 секунды
     const debouncedSave = useCallback(
         debounce((envId: string, vars: KeyValuePair[]) => {
             const variablesObj = vars.reduce((acc, pair) => {
@@ -161,16 +152,13 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
             return;
         }
 
-        // 1. Обновляем локальное состояние МГНОВЕННО, чтобы UI был отзывчивым.
         setLocalVariables(newPairs);
 
-        // 2. Вызываем "ленивое" сохранение в базу данных.
         if (editableEnv) {
             debouncedSave(editableEnv.id, newPairs);
         }
     };
 
-    // Сбрасываем выбранное для редактирования окружение при закрытии диалога
     useEffect(() => {
         if (!isManageOpen) {
             setSelectedEnvForEditing(null);
@@ -231,7 +219,6 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
 
                     {user ? (
                         <div className="flex-grow grid grid-cols-3 gap-4 overflow-hidden">
-                            {/* Левая панель: список окружений */}
                             <div className="col-span-1 border-r pr-4 flex flex-col">
                                 <div className="flex-shrink-0 flex flex-col gap-2 mb-2 p-1">
                                     <div className="flex gap-2">
@@ -254,7 +241,6 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
                                             <PlusCircle className="h-4 w-4" />
                                         </Button>
                                     </div>
-                                    {/* ДОБАВЛЯЕМ СЧЕТЧИК ОКРУЖЕНИЙ */}
                                     <p className="text-xs text-muted-foreground text-right px-1">
                                         {environments.length} /{" "}
                                         {MAX_ENVIRONMENTS}{" "}
@@ -331,7 +317,6 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
                                 </div>
                             </div>
 
-                            {/* Правая панель: редактор переменных */}
                             <div className="col-span-2 flex flex-col overflow-y-hidden">
                                 {editableEnv ? (
                                     <>
@@ -356,7 +341,6 @@ export function EnvironmentManager({ user }: EnvironmentManagerProps) {
                                                 placeholderValue={t(
                                                     "environments.variable_value_placeholder"
                                                 )}
-                                                // --- ПЕРЕДАЕМ ПРОП ---
                                                 disabled={
                                                     activeVariablesCount >=
                                                     MAX_VARIABLES_PER_ENV

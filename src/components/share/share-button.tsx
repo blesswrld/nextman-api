@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/tooltip";
 const MAX_SHARED_REQUESTS = 20;
 
-// --- Добавляем пропс user ---
 interface ShareButtonProps {
     user: User | null;
 }
@@ -59,7 +58,7 @@ export function ShareButton({ user }: ShareButtonProps) {
                     }),
                     variant: "destructive",
                 });
-                setLoading(false); // <-- Убедимся, что загрузка прекращается
+                setLoading(false);
                 return;
             }
 
@@ -90,13 +89,11 @@ export function ShareButton({ user }: ShareButtonProps) {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // --- Логика для неавторизованных пользователей ---
     if (!user) {
         return (
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        {/* Кнопка-пустышка, которая будет задизейблена */}
                         <Button variant="outline" size="sm" disabled>
                             <Share2 className="h-4 w-4 mr-2" />
                             {t("share_button.share")}

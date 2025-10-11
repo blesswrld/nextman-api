@@ -10,7 +10,6 @@ export const useHotkeys = (hotkeys: [string, (e: KeyboardEvent) => void][]) => {
                 const keyToPress = keys[keys.length - 1];
 
                 if (
-                    // Группируем проверку Ctrl/Cmd в скобки
                     ((ctrl && event.ctrlKey) || (cmd && event.metaKey)) &&
                     event.key.toLowerCase() === keyToPress.toLowerCase()
                 ) {

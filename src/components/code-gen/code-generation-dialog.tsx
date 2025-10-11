@@ -42,7 +42,6 @@ export function CodeGenerationDialog() {
         null
     );
 
-    // Helper-функция для подстановки переменных
     const applyVariables = (text: string): string => {
         if (!activeEnvironment || !activeEnvironment.variables) return text;
         let newText = text;
@@ -59,14 +58,12 @@ export function CodeGenerationDialog() {
     const handleGenerateCode = () => {
         if (!activeTab) return;
 
-        // Применяем переменные ко всем частям запроса
         const processedUrl = applyVariables(activeTab.url);
         const processedBody = applyVariables(activeTab.body);
         const processedHeaders = activeTab.headers
             .map((h) => ({ ...h, value: applyVariables(h.value) }))
             .filter((h) => h.key);
 
-        // Собираем URL с query-параметрами
         const activeParams = activeTab.queryParams.filter((p) => p.key);
         let finalUrl = processedUrl;
         if (activeParams.length > 0) {
@@ -129,7 +126,6 @@ export function CodeGenerationDialog() {
                         </TabsTrigger>
                     </TabsList>
 
-                    {/* Контент для таба cURL */}
                     <TabsContent value="curl" className="mt-2 relative">
                         <Button
                             variant="ghost"
@@ -139,7 +135,6 @@ export function CodeGenerationDialog() {
                                 handleCopy(generatedCode.curl, "curl")
                             }
                         >
-                            {/* Условный рендеринг иконки */}
                             {copied === "curl" ? (
                                 <Check className="h-4 w-4 text-green-500" />
                             ) : (
@@ -160,7 +155,6 @@ export function CodeGenerationDialog() {
                         </SyntaxHighlighter>
                     </TabsContent>
 
-                    {/* Контент для таба Fetch */}
                     <TabsContent value="fetch" className="mt-2 relative">
                         <Button
                             variant="ghost"
@@ -190,7 +184,6 @@ export function CodeGenerationDialog() {
                         </SyntaxHighlighter>
                     </TabsContent>
 
-                    {/* Контент для таба Axios */}
                     <TabsContent value="axios" className="mt-2 relative">
                         <Button
                             variant="ghost"

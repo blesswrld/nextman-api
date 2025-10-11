@@ -45,7 +45,6 @@ export function SaveRequestDialog() {
     const { t } = useTranslation();
     const { toast } = useToast();
 
-    // Логика для проверки лимита
     const selectedCollectionData = collections.find(
         (c) => c.id === selectedCollection
     );
@@ -53,12 +52,10 @@ export function SaveRequestDialog() {
         ? selectedCollectionData.requests.length >= MAX_REQUESTS_PER_COLLECTION
         : false;
 
-    // Функция для сохранения запроса
     const handleSave = async () => {
-        // Проверяем наличие activeTab в самом начале
         if (!activeTab) return;
 
-        const finalRequestName = requestName.trim(); // <-- Определяем finalRequestName
+        const finalRequestName = requestName.trim();
 
         if (isCollectionFull) {
             toast({
@@ -96,11 +93,10 @@ export function SaveRequestDialog() {
         }
 
         const requestToSave = {
-            name: finalRequestName, // <-- Используем определенную переменную
+            name: finalRequestName,
             method: activeTab.method,
             url: activeTab.url,
             body: parsedBody,
-            // Фильтруем пустые пары, чтобы не сохранять их в БД
             headers: activeTab.headers.filter((h) => h.key.trim()),
             queryParams: activeTab.queryParams.filter((p) => p.key.trim()),
         };
@@ -108,13 +104,12 @@ export function SaveRequestDialog() {
         // @ts-ignore
         await saveRequest(selectedCollection, requestToSave);
 
-        // После успешного сохранения, помечаем вкладку как "чистую"
         updateActiveTab({ isDirty: false, name: finalRequestName });
 
         toast({
             title: t("toasts.request_saved_title"),
             description: t("toasts.request_saved_description", {
-                name: finalRequestName, // <-- Используем определенную переменную
+                name: finalRequestName,
             }),
         });
 
@@ -123,11 +118,10 @@ export function SaveRequestDialog() {
 
     const handleOpenChange = (open: boolean) => {
         if (!open) {
-            setSelectedCollection(null); // Сбрасываем выбор при закрытии
+            setSelectedCollection(null);
         }
 
         if (open && activeTab) {
-            // Предзаполняем имя запроса именем вкладки, если оно не стандартное
             const initialName =
                 activeTab.name === "tabs.untitled_request"
                     ? ""

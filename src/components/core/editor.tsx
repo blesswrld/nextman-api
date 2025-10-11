@@ -19,10 +19,8 @@ export function CodeEditor({
     const { registerCompletionProvider } = useCompletion();
 
     const handleEditorDidMount: OnMount = (editor, monaco) => {
-        // --- РЕГИСТРИРУЕМ АВТОДОПОЛНЕНИЕ ---
         const provider = registerCompletionProvider(monaco);
 
-        // Очищаем провайдер при размонтировании, чтобы избежать утечек
         editor.onDidDispose(() => {
             provider.dispose();
         });
@@ -40,13 +38,13 @@ export function CodeEditor({
                 onMount={handleEditorDidMount}
                 options={{
                     readOnly: readOnly,
-                    minimap: { enabled: false }, // отключаем мини-карту
+                    minimap: { enabled: false },
                     scrollBeyondLastLine: false,
                     fontSize: 14,
                     wordWrap: "on",
-                    automaticLayout: true, // автоматически подстраивается под размер контейнера
+                    automaticLayout: true,
                 }}
-                theme="vs-dark" // Используем темную тему
+                theme="vs-dark"
             />
         </div>
     );

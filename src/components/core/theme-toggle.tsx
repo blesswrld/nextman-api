@@ -8,7 +8,6 @@ export function ThemeToggle() {
     const { setTheme, theme, resolvedTheme } = useTheme();
     const { t } = useTranslation();
 
-    // Переключаем тему (light -> dark -> system -> light)
     const toggleTheme = () => {
         const currentTheme = theme === "system" ? resolvedTheme : theme;
         if (currentTheme === "dark") {
@@ -25,7 +24,6 @@ export function ThemeToggle() {
         >
             <span className="text-">{t("theme_switcher.toggle_theme")}</span>
             <div className="text-muted-foreground">
-                {/* Показываем правильную иконку в зависимости от темы */}
                 {resolvedTheme === "dark" ? (
                     <Moon className="h-4 w-4" />
                 ) : (

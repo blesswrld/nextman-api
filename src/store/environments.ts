@@ -69,7 +69,7 @@ export const useEnvironmentsStore = create<EnvironmentsState>((set, get) => ({
         const { data: newEnv, error } = await supabase
             .from("environments")
             // @ts-ignore
-            .insert({ name, user_id: user.id }) // Передаем только то, что нужно
+            .insert({ name, user_id: user.id })
             .select()
             .single();
 
@@ -88,7 +88,7 @@ export const useEnvironmentsStore = create<EnvironmentsState>((set, get) => ({
         const { data: updatedEnv, error } = await supabase
             .from("environments")
             // @ts-ignore
-            .update({ variables }) // Просто передаем объект, supabase-js сам справится с JSON
+            .update({ variables })
             .eq("id", id)
             .select()
             .single();
@@ -125,7 +125,6 @@ export const useEnvironmentsStore = create<EnvironmentsState>((set, get) => ({
 
         set((state) => ({
             environments: state.environments.filter((env) => env.id !== id),
-            // Сбрасываем активное окружение, если оно было удалено
             activeEnvironment:
                 state.activeEnvironment?.id === id
                     ? null

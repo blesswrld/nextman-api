@@ -15,7 +15,6 @@ export function useCompletion() {
                     endColumn: position.column,
                 });
 
-                // Срабатываем, только если пользователь ввел {{
                 if (!textUntilPosition.endsWith("{{")) {
                     return { suggestions: [] };
                 }
@@ -26,10 +25,10 @@ export function useCompletion() {
                 const suggestions = Object.keys(variables).map((key) => ({
                     label: `{{${key}}}`,
                     kind: editorInstance.languages.CompletionItemKind.Variable,
-                    insertText: `${key}}}`, // Вставляем только недостающую часть
+                    insertText: `${key}}}`,
                     range: new monaco.Range(
                         position.lineNumber,
-                        position.column - 2, // Заменяем {{
+                        position.column - 2,
                         position.lineNumber,
                         position.column
                     ),

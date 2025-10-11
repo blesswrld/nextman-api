@@ -14,8 +14,8 @@ i18n.use(initReactI18next).init({
             translation: ruTranslation,
         },
     },
-    lng: "en", // язык по умолчанию
-    fallbackLng: "en", // язык, который будет использоваться, если перевод не найден
+    lng: "en",
+    fallbackLng: "en",
     interpolation: {
         escapeValue: false,
     },

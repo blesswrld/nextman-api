@@ -37,7 +37,6 @@ export function SettingsDropdown({ user }: SettingsDropdownProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuGroup>
-                    {/* Для простых компонентов `asChild` остается */}
                     <DropdownMenuItem asChild>
                         <LanguageSwitcher />
                     </DropdownMenuItem>
@@ -45,8 +44,6 @@ export function SettingsDropdown({ user }: SettingsDropdownProps) {
                         <ThemeToggle />
                     </DropdownMenuItem>
 
-                    {/* Для компонентов с Dialog/Sheet `asChild` не нужен. */}
-                    {/* Добавляем onSelect, чтобы предотвратить закрытие меню при клике. */}
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         <CodeGenerationDialog />
                     </DropdownMenuItem>

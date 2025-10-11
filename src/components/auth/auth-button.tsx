@@ -18,7 +18,6 @@ import { clearHistory } from "@/lib/history-db";
 import { useTranslation } from "react-i18next";
 import { Github } from "lucide-react";
 
-// Иконка Google
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 48 48" {...props}>
         <path
@@ -70,7 +69,6 @@ export function AuthButton() {
     }, [supabase]);
 
     const handleLogin = async (provider: "github" | "google") => {
-        // <-- Теперь принимает провайдера
         await supabase.auth.signInWithOAuth({
             provider,
             options: {
@@ -80,16 +78,12 @@ export function AuthButton() {
     };
 
     const handleLogout = async () => {
-        // Сначала вызываем signOut
         await supabase.auth.signOut();
-        // Затем полностью очищаем локальную историю
         await clearHistory();
-        // И только потом обновляем локальное состояние UI
         setUser(null);
     };
 
     if (loading) {
-        // Используем скелетон, имитирующий кнопку
         return <Skeleton className="h-10 w-24 rounded-md" />;
     }
 

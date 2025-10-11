@@ -18,7 +18,6 @@ import { SheetDescription } from "@/components/ui/sheet";
 import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
 
-// 1. Объявляем, что наш компонент теперь принимает пропс `user`
 interface HistorySidebarProps {
     user: User | null;
 }
@@ -32,7 +31,6 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
     const { t } = useTranslation();
 
     useEffect(() => {
-        // Загружаем историю, когда сайдбар открывается И пользователь залогинен
         if (isOpen && user) {
             setLoading(true);
             getHistory().then((items) => {
@@ -40,8 +38,6 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                 setLoading(false);
             });
         }
-        // Если пользователь не авторизован и панель открыта,
-        // убедимся, что история пуста и нет загрузки.
         if (isOpen && !user) {
             setHistory([]);
             setLoading(false);
@@ -55,10 +51,9 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
 
     const handleHistoryItemClick = (item: HistoryItem) => {
         addTab({
-            name: item.name, // <-- ИСПОЛЬЗУЕМ СОХРАНЕННОЕ ИМЯ
+            name: item.name,
             method: item.method,
             url: item.url,
-            // Сбрасываем isDirty, так как вкладка только что "загружена" из истории
             isDirty: false,
         });
         setIsOpen(false);
@@ -83,9 +78,7 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                     </SheetDescription>
                 </SheetHeader>
 
-                {/* 2. Добавляем условный рендеринг на основе пропса `user` */}
                 {user ? (
-                    // --- СЦЕНАРИЙ 1: ПОЛЬЗОВАТЕЛЬ АВТОРИЗОВАН ---
                     <>
                         <div className="py-4">
                             <Button
@@ -102,7 +95,6 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                             {loading ? (
                                 <HistorySkeleton />
                             ) : history.length > 0 ? (
-                                // --- Если история ЕСТЬ ---
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
@@ -133,7 +125,6 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                                     </div>
                                 </motion.div>
                             ) : (
-                                // --- Если истории НЕТ (но пользователь авторизован) ---
                                 <div className="text-center py-8 h-full flex flex-col items-center justify-center">
                                     <History className="h-10 w-10 mx-auto text-muted-foreground" />
                                     <h3 className="mt-4 text-sm font-semibold">
@@ -147,7 +138,6 @@ export function HistorySidebar({ user }: HistorySidebarProps) {
                         </div>
                     </>
                 ) : (
-                    // --- СЦЕНАРИЙ 2: ПОЛЬЗОВАТЕЛЬ НЕ АВТОРИЗОВАН ---
                     <div className="flex-grow flex flex-col items-center justify-center text-center">
                         <LogIn className="h-10 w-10 mx-auto text-muted-foreground" />
                         <h3 className="mt-4 text-sm font-semibold">

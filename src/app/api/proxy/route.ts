@@ -11,22 +11,18 @@ export async function POST(request: Request) {
             );
         }
 
-        // Удаляем заголовки, которые не должны пересылаться
-        // Это важно, чтобы избежать ошибок с content-length и т.д.
         const headersToSend = new Headers(headers);
         headersToSend.delete("host");
         headersToSend.delete("content-length");
         headersToSend.delete("connection");
-        // Браузеры могут добавлять свои заголовки, которые нам не нужны
         headersToSend.delete("accept-encoding");
 
         const options: RequestInit = {
             method,
             headers: headersToSend,
-            redirect: "follow", // Следовать за редиректами
+            redirect: "follow",
         };
 
-        // Добавляем тело только для определенных методов
         if (
             body &&
             (method === "POST" || method === "PUT" || method === "PATCH")
@@ -34,10 +30,8 @@ export async function POST(request: Request) {
             options.body = body;
         }
 
-        // Делаем реальный запрос
         const apiResponse = await fetch(url, options);
 
-        // Сначала получаем заголовки ответа, чтобы узнать тип контента
         const responseHeaders: { [key: string]: string } = {};
         apiResponse.headers.forEach((value, key) => {
             responseHeaders[key] = value;
@@ -45,9 +39,8 @@ export async function POST(request: Request) {
         const contentType = responseHeaders["content-type"] || "";
 
         let responseBody: any;
-        let isBase64 = false; // Флаг, который мы отправим на клиент
+        let isBase64 = false;
 
-        // Проверяем, является ли контент текстовым (JSON, HTML, XML, SVG, и т.д.)
         const isTextContent =
             contentType.includes("application/json") ||
             contentType.includes("text/") ||
@@ -55,18 +48,13 @@ export async function POST(request: Request) {
             contentType.includes("application/svg+xml");
 
         if (isTextContent) {
-            // Если это текст, просто читаем его как текст
             responseBody = await apiResponse.text();
         } else {
-            // Для всех остальных типов (изображения, pdf, и т.д.) считаем их бинарными
             isBase64 = true;
-            // Получаем данные как ArrayBuffer
             const buffer = await apiResponse.arrayBuffer();
-            // Кодируем в Base64, чтобы безопасно передать через JSON
             responseBody = Buffer.from(buffer).toString("base64");
         }
 
-        // Отправляем все обратно на наш фронтенд, включая новый флаг isBase64
         return NextResponse.json(
             {
                 status: apiResponse.status,

@@ -1,12 +1,11 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { Languages } from "lucide-react"; // Импортируем иконку
+import { Languages } from "lucide-react";
 
 export function LanguageSwitcher() {
     const { t, i18n } = useTranslation();
 
-    // Переключаем язык по кругу (RU -> EN -> RU)
     const toggleLanguage = () => {
         const nextLang = i18n.language === "ru" ? "en" : "ru";
         i18n.changeLanguage(nextLang);
@@ -14,7 +13,6 @@ export function LanguageSwitcher() {
     };
 
     return (
-        // Теперь это единый, кликабельный элемент
         <div
             className="w-full flex justify-between items-center cursor-pointer text-sm"
             onClick={toggleLanguage}

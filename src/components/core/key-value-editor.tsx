@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { VariableInput } from "@/components/environment/variable-input"; // <-- Импортируем VariableInput
+import { VariableInput } from "@/components/environment/variable-input";
 import { cn } from "@/lib/utils";
 
 export interface KeyValuePair {
@@ -13,7 +13,6 @@ export interface KeyValuePair {
 
 interface KeyValueEditorProps {
     pairs: KeyValuePair[];
-    // Типизируем `onPairsChange` вместо `setPairs`
     onPairsChange: (newPairs: KeyValuePair[]) => void;
     placeholderKey?: string;
     placeholderValue?: string;
@@ -25,7 +24,7 @@ export function KeyValueEditor({
     onPairsChange,
     placeholderKey = "Key",
     placeholderValue = "Value",
-    disabled = false, // <-- ЗАДАЕМ ЗНАЧЕНИЕ ПО УМОЛЧАНИЮ
+    disabled = false,
 }: KeyValueEditorProps) {
     const handleFieldChange = (
         id: string,
@@ -36,7 +35,6 @@ export function KeyValueEditor({
             p.id === id ? { ...p, [field]: newValue } : p
         );
 
-        // Логика добавления новой строки
         const lastPair = newPairs[newPairs.length - 1];
         if (lastPair && (lastPair.key.trim() || lastPair.value.trim())) {
             newPairs.push({ id: crypto.randomUUID(), key: "", value: "" });
@@ -48,7 +46,6 @@ export function KeyValueEditor({
     const handleRemovePair = (idToRemove: string) => {
         const newPairs = pairs.filter((p) => p.id !== idToRemove);
 
-        // Если после удаления не осталось строк, добавляем одну пустую
         if (newPairs.length === 0) {
             onPairsChange([{ id: crypto.randomUUID(), key: "", value: "" }]);
         } else {
@@ -68,7 +65,6 @@ export function KeyValueEditor({
                         }
                         className={cn(
                             "font-mono text-sm",
-                            // Если поле заблокировано, убираем кольцо фокуса
                             disabled &&
                                 index === pairs.length - 1 &&
                                 "focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -93,7 +89,6 @@ export function KeyValueEditor({
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemovePair(pair.id)}
-                        // Кнопка удаления активна для всех строк, кроме последней пустой
                         disabled={
                             index === pairs.length - 1 &&
                             !pair.key.trim() &&

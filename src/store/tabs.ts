@@ -2,35 +2,32 @@ import { create } from "zustand";
 import { KeyValuePair } from "@/components/core/key-value-editor";
 import { addHistoryItem } from "@/lib/history-db";
 import { createClient } from "@/lib/supabase/client";
-import i18n from "@/../i18n"; // <-- ИМПОРТ
+import i18n from "@/../i18n";
 import { useEnvironmentsStore } from "./environments";
 
-const MAX_TABS = 100; // <-- ОБЪЯВЛЯЕМ КОНСТАНТУ ЛИМИТА
+const MAX_TABS = 100;
 
 export interface AuthState {
     type: AuthType;
-    // Поля для разных типов авторизации
-    token?: string; // для Bearer Token
-    key?: string; // для API Key
-    value?: string; // для API Key
-    in?: "header" | "query"; // где находится API Key
-    username?: string; // для Basic Auth
-    password?: string; // для Basic Auth
+    token?: string;
+    key?: string;
+    value?: string;
+    in?: "header" | "query";
+    username?: string;
+    password?: string;
 }
 
-// Описываем более подробный формат объекта ответа
 export interface ResponseData {
     status: number;
     statusText: string;
     headers: Record<string, string>;
-    body: string; // Тело ответа, отформатированное для вкладки "Body"
-    rawBody: string; // "Сырое", оригинальное тело ответа для вкладки "Preview"
-    contentType: string | null; // Заголовок Content-Type для определения, как рендерить превью
-    time: number; // Время выполнения запроса в мс
+    body: string;
+    rawBody: string;
+    contentType: string | null;
+    time: number;
     isBase64: boolean;
 }
 
-// Описываем тип одной вкладки, теперь используем новый тип ResponseData
 export interface RequestTab {
     id: string;
     name: string;
@@ -45,7 +42,6 @@ export interface RequestTab {
     isDirty?: boolean;
 }
 
-// Описываем тип всего нашего хранилища
 interface TabsState {
     tabs: RequestTab[];
     activeTabId: string | null;
@@ -59,13 +55,10 @@ interface TabsState {
     init?: () => void;
 }
 
-// --- ТИПЫ ДЛЯ АВТОРИЗАЦИИ ---
 export type AuthType = "none" | "bearer" | "apiKey" | "basic";
 
-// Функция для создания новой пустой вкладки
 const createNewTab = (data?: Partial<RequestTab>): RequestTab => ({
     id: crypto.randomUUID(),
-    // Используем `i18n.t` для получения перевода
     name: data?.name || i18n.t("tabs.untitled_request"),
     method: data?.method || "GET",
     url: data?.url || "https://jsonplaceholder.typicode.com/todos/1",
@@ -81,7 +74,6 @@ const createNewTab = (data?: Partial<RequestTab>): RequestTab => ({
     ...data,
 });
 
-// Функция для сборки URL с параметрами
 const buildUrlWithParams = (url: string, queryParams: KeyValuePair[]) => {
     const activeParams = queryParams.filter((p) => p.key);
     if (activeParams.length === 0) {
@@ -93,7 +85,6 @@ const buildUrlWithParams = (url: string, queryParams: KeyValuePair[]) => {
     return `${baseUrl}?${params.toString()}`;
 };
 
-// Функция для преобразования заголовков в объект
 const buildHeadersObject = (headers: KeyValuePair[]) => {
     const activeHeaders = headers.filter((h) => h.key);
     const headersObj: Record<string, string> = {};
@@ -103,7 +94,6 @@ const buildHeadersObject = (headers: KeyValuePair[]) => {
     return headersObj;
 };
 
-// Функция для подстановки переменных окружения
 const applyEnvironmentVariables = (text: string): string => {
     const activeEnv = useEnvironmentsStore.getState().activeEnvironment;
     if (!activeEnv || !activeEnv.variables) {
@@ -118,7 +108,6 @@ const applyEnvironmentVariables = (text: string): string => {
     return newText;
 };
 
-// Применяет данные авторизации, изменяя заголовки или query-параметры
 const applyAuth = (
     headers: KeyValuePair[],
     queryParams: KeyValuePair[],
@@ -127,7 +116,6 @@ const applyAuth = (
     let finalHeaders = [...headers];
     let finalQueryParams = [...queryParams];
 
-    // Удаляем предыдущие "Authorization" заголовки, чтобы избежать дублей
     finalHeaders = finalHeaders.filter(
         (h) => h.key.toLowerCase() !== "authorization"
     );
@@ -148,7 +136,6 @@ const applyAuth = (
                 value: auth.value,
             });
         } else {
-            // 'query'
             finalQueryParams.push({
                 id: crypto.randomUUID(),
                 key: auth.key,
@@ -158,7 +145,6 @@ const applyAuth = (
     }
 
     if (auth.type === "basic" && auth.username) {
-        // btoa кодирует строку в Base64. Эта функция есть во всех современных браузерах и в Node.js.
         const encoded = btoa(`${auth.username}:${auth.password || ""}`);
         finalHeaders.push({
             id: crypto.randomUUID(),
@@ -170,7 +156,6 @@ const applyAuth = (
     return { finalHeaders, finalQueryParams };
 };
 
-// --- ХРАНИЛИЩЕ ZUSTAND ---
 export const useTabsStore = create<TabsState>((set, get) => ({
     tabs: [createNewTab()],
     activeTabId: null,
@@ -180,12 +165,10 @@ export const useTabsStore = create<TabsState>((set, get) => ({
     },
 
     addTab: (data?: Partial<RequestTab>) => {
-        // Получаем текущее состояние
         const state = get();
-        // Проверяем, не достигнут ли лимит
         if (state.tabs.length >= MAX_TABS) {
             console.warn(`Tab limit of ${MAX_TABS} reached.`);
-            return; // Просто выходим из функции, не добавляя новую вкладку
+            return;
         }
 
         const newTab = createNewTab(data);
@@ -224,12 +207,7 @@ export const useTabsStore = create<TabsState>((set, get) => ({
     updateActiveTab: (data) => {
         set((state) => ({
             tabs: state.tabs.map((tab) =>
-                tab.id === state.activeTabId
-                    ? // Просто объединяем старые и новые данные.
-                      // Если в `data` есть `isDirty`, он перезапишет старый.
-                      // Если в `data` нет `isDirty`, старый `isDirty` сохранится.
-                      { ...tab, ...data }
-                    : tab
+                tab.id === state.activeTabId ? { ...tab, ...data } : tab
             ),
         }));
     },
@@ -239,14 +217,10 @@ export const useTabsStore = create<TabsState>((set, get) => ({
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (!activeTab) return;
 
-        // При НАЧАЛЕ отправки мы НЕ меняем isDirty. Он остается true, если были изменения.
         updateActiveTab({ loading: true, response: null });
         const startTime = performance.now();
 
         try {
-            // --- 1. ПРИМЕНЯЕМ АВТОРИЗАЦИЮ ---
-            // Сначала добавляем "сырые" данные авторизации (например, заголовок с `{{token}}`)
-            // к "сырым" заголовкам и параметрам из вкладки.
             const {
                 finalHeaders: headersWithAuth,
                 finalQueryParams: queryParamsWithAuth,
@@ -256,9 +230,6 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 activeTab.auth
             );
 
-            // --- 2. ПРИМЕНЯЕМ ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ---
-            // Теперь "прогоняем" все части запроса, включая новые данные авторизации,
-            // через функцию подстановки переменных.
             const processedUrl = applyEnvironmentVariables(activeTab.url);
             const processedBody = applyEnvironmentVariables(activeTab.body);
             const processedHeaders = headersWithAuth.map((h) => ({
@@ -270,7 +241,6 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 value: applyEnvironmentVariables(p.value),
             }));
 
-            // Проверяем тело запроса
             let parsedBody: string | undefined = undefined;
             if (
                 ["POST", "PUT", "PATCH"].includes(activeTab.method) &&
@@ -284,8 +254,6 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 }
             }
 
-            // --- 3. ФОРМИРУЕМ ФИНАЛЬНЫЙ ЗАПРОС ---
-            // Используем полностью обработанные данные.
             const finalUrl = buildUrlWithParams(
                 processedUrl,
                 processedQueryParams
@@ -308,7 +276,6 @@ export const useTabsStore = create<TabsState>((set, get) => ({
             const dataFromProxy = await res.json();
 
             if (!res.ok) {
-                // Если прокси вернул ошибку, создаем "фейковый" объект ответа
                 throw {
                     response: {
                         status: dataFromProxy.status || 500,
@@ -328,7 +295,6 @@ export const useTabsStore = create<TabsState>((set, get) => ({
             const rawBody = dataFromProxy.body;
             let formattedBody = rawBody;
 
-            // Форматируем JSON только если это действительно JSON, иначе оставляем как есть
             if (contentType && contentType.includes("application/json")) {
                 try {
                     formattedBody = JSON.stringify(
@@ -339,7 +305,6 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 } catch (e) {}
             }
 
-            // Определяем, какое имя использовать для истории и обновления вкладки
             let finalTabName = activeTab.name;
             if (activeTab.name === "tabs.untitled_request") {
                 const cleanUrl = activeTab.url.replace(
@@ -351,7 +316,6 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                     .slice(0, 25)}...`;
             }
 
-            // Сохраняем в историю с правильным (возможно, новым) именем, только если пользователь авторизован
             const supabase = createClient();
             const {
                 data: { user },
@@ -359,13 +323,12 @@ export const useTabsStore = create<TabsState>((set, get) => ({
 
             if (user) {
                 await addHistoryItem({
-                    url: activeTab.url, // Сохраняем оригинальный URL без переменных
+                    url: activeTab.url,
                     method: activeTab.method,
                     name: finalTabName,
                 });
             }
 
-            // Обновляем вкладку, включая ответ и новое имя
             const responseData: ResponseData = {
                 status: dataFromProxy.status,
                 statusText: dataFromProxy.statusText,
@@ -387,8 +350,6 @@ export const useTabsStore = create<TabsState>((set, get) => ({
             const endTime = performance.now();
             const requestTime = Math.round(endTime - startTime);
 
-            // Если произошла ошибка, isDirty НЕ меняется.
-            // Мы просто обновляем ответ с информацией об ошибке.
             if (error.response) {
                 updateActiveTab({ response: error.response });
                 return;
@@ -410,16 +371,13 @@ export const useTabsStore = create<TabsState>((set, get) => ({
                 time: requestTime,
                 isBase64: false,
             };
-            // Обновляем только ответ, isDirty остается true
             updateActiveTab({ response: errorResponse });
         } finally {
-            // В любом случае убираем индикатор загрузки.
             updateActiveTab({ loading: false });
         }
     },
 }));
 
-// Вызываем инициализацию сразу после создания стора
 if (typeof window !== "undefined") {
     useTabsStore.getState().init?.();
 }

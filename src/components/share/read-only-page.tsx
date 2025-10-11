@@ -345,11 +345,9 @@ function SharedRequestViewer({
                         ) : (
                             <Skeleton className="h-7 w-32" />
                         )}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-4">
                             {isMounted ? (
                                 <>
-                                    <LanguageSwitcher />
-                                    <ThemeToggle />
                                     <Button asChild variant="secondary">
                                         <a
                                             href="/"

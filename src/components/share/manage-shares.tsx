@@ -19,7 +19,6 @@ import { Database } from "@/lib/supabase/database.types";
 import { useTranslation } from "react-i18next";
 import type { User } from "@supabase/supabase-js";
 
-// --- Добавляем пропс user ---
 interface ManageSharesProps {
     user: User | null;
 }
@@ -67,24 +66,20 @@ export function ManageShares({ user }: ManageSharesProps) {
     };
 
     const handleDelete = async (id: string, name: string | null) => {
-        // 1. ОПТИМИСТИЧНО ОБНОВЛЯЕМ UI
         const previousRequests = requests;
         setRequests((prev) => prev.filter((r) => r.id !== id));
 
-        // 2. ОТПРАВЛЯЕМ ЗАПРОС
         const { error } = await supabase
             .from("shared_requests")
             .delete()
             .eq("id", id);
 
-        // 3. ОБРАБАТЫВАЕМ РЕЗУЛЬТАТ
         if (error) {
             toast({
                 title: t("toasts.delete_share_error_title"),
                 description: t("toasts.delete_share_error_description"),
                 variant: "destructive",
             });
-            // Если ошибка, возвращаем UI в предыдущее состояние
             setRequests(previousRequests);
         } else {
             toast({
@@ -97,32 +92,27 @@ export function ManageShares({ user }: ManageSharesProps) {
     };
 
     const handleNameUpdate = async (id: string, newName: string) => {
-        // 1. ОПТИМИСТИЧНО ОБНОВЛЯЕМ UI
         const previousRequests = requests;
         setRequests((prev) =>
             prev.map((r) => (r.id === id ? { ...r, name: newName } : r))
         );
 
-        // 2. ОТПРАВЛЯЕМ ЗАПРОС
         const { error } = await supabase
             .from("shared_requests")
             // @ts-ignore
             .update({ name: newName })
             .eq("id", id);
 
-        // 3. ОБРАБАТЫВАЕМ РЕЗУЛЬТАТ
         if (error) {
             toast({
                 title: t("toasts.update_share_name_error_title"),
                 description: t("toasts.update_share_name_error_description"),
                 variant: "destructive",
             });
-            // Если ошибка, возвращаем UI в предыдущее состояние
             setRequests(previousRequests);
         }
     };
 
-    // Весь компонент теперь обернут в Sheet, а триггером является наш кастомный div.
     return (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
@@ -137,7 +127,6 @@ export function ManageShares({ user }: ManageSharesProps) {
             <SheetContent className="w-[400px] sm:w-[540px] flex flex-col">
                 <SheetHeader>
                     <SheetTitle>{t("manage_shares.title")}</SheetTitle>
-                    {/* --- Показываем описание только если юзер залогинен */}
                     {user && (
                         <SheetDescription>
                             {t("manage_shares.description", {
@@ -149,7 +138,6 @@ export function ManageShares({ user }: ManageSharesProps) {
                 </SheetHeader>
 
                 {user ? (
-                    // Если пользователь авторизован, показываем контент
                     <div className="flex-grow overflow-y-auto py-4">
                         {loading ? (
                             <div className="space-y-3">
@@ -157,7 +145,7 @@ export function ManageShares({ user }: ManageSharesProps) {
                                     <Skeleton key={i} className="h-16 w-full" />
                                 ))}
                             </div>
-                        ) : requests.length > 0 ? ( // Добавил проверку на пустой массив
+                        ) : requests.length > 0 ? (
                             <div className="space-y-2">
                                 {requests.map((req) => (
                                     <div
@@ -220,7 +208,6 @@ export function ManageShares({ user }: ManageSharesProps) {
                                 ))}
                             </div>
                         ) : (
-                            // Заглушка, если ссылок пока нет
                             <div className="text-center py-8 h-full flex flex-col items-center justify-center">
                                 <LinkIcon className="h-10 w-10 mx-auto text-muted-foreground" />
                                 <h3 className="mt-4 text-sm font-semibold">
@@ -233,7 +220,6 @@ export function ManageShares({ user }: ManageSharesProps) {
                         )}
                     </div>
                 ) : (
-                    // Если пользователь НЕ авторизован, показываем заглушку
                     <div className="flex-grow flex flex-col items-center justify-center text-center">
                         <LogIn className="h-10 w-10 mx-auto text-muted-foreground" />
                         <h3 className="mt-4 text-sm font-semibold">

@@ -246,7 +246,7 @@ export default function HomePage() {
     const {
         tabs,
         activeTabId,
-        addTab: zustandAddTab, // <--- Переименовываем
+        addTab: zustandAddTab,
         closeTab,
         setActiveTab,
         updateActiveTab,

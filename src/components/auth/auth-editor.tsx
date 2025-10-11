@@ -17,17 +17,13 @@ import { useCallback } from "react";
 export function AuthEditor() {
     const { t } = useTranslation();
 
-    // 1. Получаем ТОЛЬКО auth и функцию обновления. Это ключ к предотвращению лишних ререндеров.
     const auth = useTabsStore(
         (state) => state.tabs.find((t) => t.id === state.activeTabId)?.auth
     );
     const updateActiveTab = useTabsStore((state) => state.updateActiveTab);
 
-    // 2. Используем useCallback, чтобы функции не пересоздавались без необходимости
     const handleAuthDataChange = useCallback(
         (updates: Partial<AuthState>) => {
-            // Мы передаем функцию, чтобы всегда работать с последней версией `auth`
-            // TypeScript не сможет это проверить, поэтому используем `as any` в одном месте
             updateActiveTab({ auth: { ...(auth as any), ...updates } });
         },
         [auth, updateActiveTab]

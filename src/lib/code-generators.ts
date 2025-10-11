@@ -1,6 +1,5 @@
 import { KeyValuePair } from "@/components/core/key-value-editor";
 
-// Тип для входных данных, чтобы генераторы знали, с чем работают
 export interface CodeGenInput {
     url: string;
     method: string;
@@ -8,20 +7,16 @@ export interface CodeGenInput {
     body?: string;
 }
 
-// --- Генератор для cURL ---
 export function generateCurl(input: CodeGenInput): string {
     let curl = `curl --location --request ${input.method} '${input.url}'`;
 
-    // Добавляем заголовки
     input.headers.forEach((header) => {
         if (header.key) {
             curl += ` \\\n--header '${header.key}: ${header.value}'`;
         }
     });
 
-    // Добавляем тело, если оно есть
     if (input.body && ["POST", "PUT", "PATCH"].includes(input.method)) {
-        // Экранируем одинарные кавычки в JSON для безопасности
         const escapedBody = input.body.replace(/'/g, "'\\''");
         curl += ` \\\n--data-raw '${escapedBody}'`;
     }
@@ -29,11 +24,9 @@ export function generateCurl(input: CodeGenInput): string {
     return curl;
 }
 
-// --- Генератор для JavaScript (Fetch) ---
 export function generateFetch(input: CodeGenInput): string {
     let options = `{\n  method: '${input.method}',`;
 
-    // Добавляем заголовки
     if (input.headers.length > 0) {
         options += `\n  headers: {\n`;
         input.headers.forEach((header) => {
@@ -44,7 +37,6 @@ export function generateFetch(input: CodeGenInput): string {
         options += `  },`;
     }
 
-    // Добавляем тело
     if (input.body && ["POST", "PUT", "PATCH"].includes(input.method)) {
         options += `\n  body: JSON.stringify(${input.body}),`;
     }
@@ -54,13 +46,11 @@ export function generateFetch(input: CodeGenInput): string {
     return `fetch('${input.url}', ${options})\n  .then(response => response.json())\n  .then(data => console.log(data))\n  .catch(error => console.error('Error:', error));`;
 }
 
-// --- Генератор для JavaScript (Axios) ---
 export function generateAxios(input: CodeGenInput): string {
     let config = `{\n  method: '${input.method.toLowerCase()}',\n  url: '${
         input.url
     }',`;
 
-    // Добавляем заголовки
     if (input.headers.length > 0) {
         config += `\n  headers: {\n`;
         input.headers.forEach((header) => {
@@ -71,7 +61,6 @@ export function generateAxios(input: CodeGenInput): string {
         config += `  },`;
     }
 
-    // Добавляем тело
     if (input.body && ["POST", "PUT", "PATCH"].includes(input.method)) {
         config += `\n  data: ${input.body}`;
     }

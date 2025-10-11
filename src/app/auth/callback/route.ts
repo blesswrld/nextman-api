@@ -16,6 +16,5 @@ export async function GET(request: NextRequest) {
         await supabase.auth.exchangeCodeForSession(code);
     }
 
-    // URL-адрес для перенаправления после завершения процесса входа в систему
     return NextResponse.redirect(requestUrl.origin);
 }

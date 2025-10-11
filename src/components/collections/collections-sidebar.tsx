@@ -72,7 +72,6 @@ export function CollectionsSidebar() {
     const { t } = useTranslation();
     const { toast } = useToast();
 
-    // Этот стейт будет true, пока мы не узнаем, залогинен пользователь или нет.
     const [authLoading, setAuthLoading] = useState(true);
 
     useEffect(() => {
@@ -84,12 +83,9 @@ export function CollectionsSidebar() {
             } = await supabase.auth.getUser();
             setUser(user);
 
-            // УБИРАЕМ ЗАГРУЗКУ АУТЕНТИФИКАЦИИ
-            // Как только мы получили ответ от getUser(), мы знаем статус пользователя.
             setAuthLoading(false);
 
             if (user) {
-                // Загружаем коллекции, только если пользователь есть
                 fetchCollections();
             }
 
@@ -98,7 +94,6 @@ export function CollectionsSidebar() {
                     const newUser = session?.user ?? null;
                     setUser(newUser);
                     if (newUser) {
-                        // Перезагружаем, если пользователь вошел
                         fetchCollections();
                     }
                 }
@@ -113,23 +108,20 @@ export function CollectionsSidebar() {
     }, [fetchCollections]);
 
     useEffect(() => {
-        // Устанавливаем тайм-аут, чтобы фокус сработал ПОСЛЕ того,
-        // как анимация открытия диалога завершится.
         if (dialogOpen) {
             setTimeout(() => {
                 inputRef.current?.focus();
-            }, 100); // 100мс обычно достаточно
+            }, 100);
         }
     }, [dialogOpen]);
 
     const handleCreateCollection = async () => {
         if (newCollectionName.trim()) {
-            const name = newCollectionName.trim(); // Сохраняем имя в переменную
+            const name = newCollectionName.trim();
             await createCollection(name);
 
             toast({
                 title: t("toasts.collection_created_title"),
-                // Передаем переменную `name` в перевод
                 description: t("toasts.collection_created_description", {
                     name: name,
                 }),
@@ -141,17 +133,14 @@ export function CollectionsSidebar() {
     };
 
     const handleRequestClick = (request: SavedRequest) => {
-        // Функция для безопасного преобразования данных из Supabase в KeyValuePair[]
         const parseJsonToKvArray = (json: unknown): KeyValuePair[] => {
             if (Array.isArray(json)) {
-                // Проверяем, что это массив нужных нам объектов
                 return json.map((item) => ({
                     id: item.id || crypto.randomUUID(),
                     key: item.key || "",
                     value: item.value || "",
                 }));
             }
-            // Если это не массив, возвращаем пустую строку по умолчанию
             return [{ id: crypto.randomUUID(), key: "", value: "" }];
         };
 
@@ -224,12 +213,9 @@ export function CollectionsSidebar() {
                 )}
             </div>
             <div className="flex-grow border-t pt-4 overflow-y-auto">
-                {/* ДОБАВЛЯЕМ НОВУЮ ПРОВЕРКУ */}
                 {authLoading ? (
-                    // Пока идет проверка аутентификации, показываем скелетон
                     <CollectionsSkeleton />
                 ) : user ? (
-                    // Если пользователь есть, показываем его данные (или скелетон, если данные грузятся)
                     loading ? (
                         <CollectionsSkeleton />
                     ) : (
@@ -264,7 +250,6 @@ export function CollectionsSidebar() {
                                                                 e.stopPropagation()
                                                             }
                                                         >
-                                                            {/* Мы останавливаем всплытие события на этом div. */}
                                                             <EditableText
                                                                 initialValue={
                                                                     collection.name ||

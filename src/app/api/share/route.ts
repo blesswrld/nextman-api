@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import { RequestTab } from "@/store/tabs";
 
 export async function POST(request: Request) {
-    // Указываем тип для requestData, чтобы TypeScript нам помогал
     const requestData: RequestTab = await request.json();
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
@@ -17,10 +16,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 1. Проверяем, есть ли у запроса осмысленное имя.
-    //    "Untitled Request" не считаем осмысленным.
-    // 2. Если имени нет, создаем его из метода и URL.
-    // 3. Если и URL пустой, даем запасное имя "Untitled Share".
     const meaningfulName =
         requestData.name && requestData.name !== "Untitled Request"
             ? requestData.name
@@ -32,7 +27,7 @@ export async function POST(request: Request) {
         .insert({
             request_data: requestData,
             user_id: user.id,
-            name: meaningfulName, // <-- ИСПОЛЬЗУЕМ НАШЕ НОВОЕ ИМЯ
+            name: meaningfulName,
         })
         .select("id")
         .single();
