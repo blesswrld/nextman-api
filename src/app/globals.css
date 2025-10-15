@@ -17,7 +17,6 @@
         --primary: 0 0% 9%;
         --primary-foreground: 0 0% 98%;
 
-        /* ПЕРЕМЕННЫЕ ДЛЯ КНОПОК ВХОДА */
         --login: 0 0% 100%;
         --login-foreground: 0 0% 9%;
 
@@ -57,7 +56,6 @@
         --primary: 0 0% 98%;
         --primary-foreground: 0 0% 9%;
 
-        /* ПЕРЕМЕННЫЕ ДЛЯ КНОПОК ВХОДА */
         --login: 0 0% 9%;
         --login-foreground: 0 0% 98%;
 
@@ -91,7 +89,6 @@
     }
 }
 
-/* Глобально убираем кольцо фокуса для всех инпутов */
 input:focus-visible {
     outline: none;
     --tw-ring-offset-shadow: 0 0 #0000;

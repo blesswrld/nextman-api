@@ -28,7 +28,7 @@ import { AuthButton } from "@/components/auth/auth-button";
 import { CollectionsSidebar } from "@/components/collections/collections-sidebar";
 import { SaveRequestDialog } from "@/components/collections/save-request-dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { useHotkeys } from "@/hooks/use-hotkeys"; // <-- Импорт
+import { useHotkeys } from "@/hooks/use-hotkeys";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
@@ -57,20 +57,17 @@ import { SettingsDropdown } from "@/components/core/settings-dropdown";
 // import { Loader } from "@/components/core/loader";
 import { HomePageSkeleton } from "@/components/core/homepage-skeleton";
 
-// --- ДИНАМИЧЕСКИЙ ИМПОРТ РЕДАКТОРА ---
 const CodeEditor = dynamic(
     () => import("@/components/core/editor").then((mod) => mod.CodeEditor),
     {
-        ssr: false, // <-- Говорим Next.js НЕ рендерить этот компонент на сервере
-        loading: () => <Skeleton className="w-full h-full" />, // Показываем скелетон, пока редактор грузится
+        ssr: false,
+        loading: () => <Skeleton className="w-full h-full" />,
     }
 );
 
-// --- КОМПОНЕНТ ДЛЯ ПРЕВЬЮ ---
 function ResponsePreview({ response }: { response: ResponseData }) {
     const { t } = useTranslation();
 
-    // Находим заголовок X-Frame-Options (в нижнем регистре, т.к. заголовки нечувствительны к регистру)
     const xFrameOptions = response.headers["x-frame-options"];
 
     if (
@@ -86,7 +83,7 @@ function ResponsePreview({ response }: { response: ResponseData }) {
                 <p className="text-muted-foreground text-sm mt-1">
                     {t("previews.preview_blocked_description")}
                 </p>
-                {/* Кнопка-запасной вариант, чтобы пользователь все равно мог увидеть контент */}
+
                 <Button
                     variant="secondary"
                     className="mt-4"
@@ -129,7 +126,6 @@ function ResponsePreview({ response }: { response: ResponseData }) {
         }
     };
 
-    // Helper-компонент для рендера превью с кнопкой
     const PreviewContainer = ({
         children,
         url,
@@ -154,7 +150,6 @@ function ResponsePreview({ response }: { response: ResponseData }) {
         );
     };
 
-    // HTML
     if (response.contentType.includes("text/html") && !response.isBase64) {
         const htmlBlob = new Blob([response.rawBody], { type: "text/html" });
         const htmlUrl = URL.createObjectURL(htmlBlob);
@@ -169,7 +164,6 @@ function ResponsePreview({ response }: { response: ResponseData }) {
         );
     }
 
-    // SVG (как текст)
     if (response.contentType.includes("image/svg+xml") && !response.isBase64) {
         const svgBlob = new Blob([response.rawBody], { type: "image/svg+xml" });
         const svgUrl = URL.createObjectURL(svgBlob);
@@ -186,7 +180,6 @@ function ResponsePreview({ response }: { response: ResponseData }) {
         );
     }
 
-    // Бинарные данные из Base64
     if (response.isBase64) {
         const url = base64ToBlobUrl(response.rawBody, response.contentType);
         if (!url)
@@ -218,7 +211,6 @@ function ResponsePreview({ response }: { response: ResponseData }) {
         }
     }
 
-    // Простые текстовые форматы
     if (
         response.contentType.includes("text/") ||
         response.contentType.includes("application/xml")
@@ -239,10 +231,9 @@ function ResponsePreview({ response }: { response: ResponseData }) {
     );
 }
 
-const MAX_TABS = 100; // <-- ОБЪЯВЛЯЕМ ЛИМИТ ЗДЕСЬ
+const MAX_TABS = 100;
 
 export default function HomePage() {
-    // --- Получаем всё состояние и действия из нашего глобального хранилища Zustand ---
     const {
         tabs,
         activeTabId,
@@ -250,11 +241,10 @@ export default function HomePage() {
         closeTab,
         setActiveTab,
         updateActiveTab,
-        sendRequest, // Главное действие для отправки запроса
-        init, // Действие для инициализации
+        sendRequest,
+        init,
     } = useTabsStore();
 
-    // Этот стейт будет отслеживать, завершилась ли первоначальная инициализация стора
     const [isStoreInitialized, setIsStoreInitialized] = useState(false);
 
     const { t } = useTranslation();
@@ -263,7 +253,6 @@ export default function HomePage() {
     const [user, setUser] = useState<User | null>(null);
     const [editingTabId, setEditingTabId] = useState<string | null>(null);
 
-    // Используем тот же паттерн `isMounted`, что и для ReadOnlyPage
     const [isMounted, setIsMounted] = useState(false);
     const { resolvedTheme } = useTheme();
     const logoSrc =
@@ -275,11 +264,9 @@ export default function HomePage() {
         setIsMounted(true);
     }, []);
 
-    // Добавляем горячую клавишу
     useHotkeys([["ctrl+enter", () => sendRequest()]]);
-    useHotkeys([["cmd+enter", () => sendRequest()]]); // Для Mac
+    useHotkeys([["cmd+enter", () => sendRequest()]]);
 
-    // Инициализируем стор один раз при монтировании компонента
     useEffect(() => {
         if (init) init();
 
@@ -287,7 +274,7 @@ export default function HomePage() {
         const getUserAndSetupListener = async () => {
             if (init) {
                 init();
-                setIsStoreInitialized(true); // <-- Помечаем, что стор готов
+                setIsStoreInitialized(true);
             }
 
             const {
@@ -311,11 +298,8 @@ export default function HomePage() {
         };
     }, [init]);
 
-    // --- Находим активную вкладку по её ID ---
     const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
-    // --- Функции для обновления данных в сторе ---
-    // Они вызываются дочерними компонентами и обновляют состояние активной вкладки
     const handleUrlChange = (url: string) =>
         updateActiveTab({ url, isDirty: true });
     const handleMethodChange = (method: string) =>
@@ -327,9 +311,7 @@ export default function HomePage() {
     const handleHeadersChange = (headers: KeyValuePair[]) =>
         updateActiveTab({ headers, isDirty: true });
 
-    // --- ФУНКЦИЯ-ОБЕРТКА ---
     const handleAddTab = () => {
-        // Проверяем лимит здесь, в компоненте
         if (tabs.length >= MAX_TABS) {
             toast({
                 title: t("toasts.tab_limit_reached_title"),
@@ -339,14 +321,11 @@ export default function HomePage() {
                 variant: "destructive",
             });
         } else {
-            // Если лимита нет, вызываем оригинальную функцию из стора
             zustandAddTab();
         }
     };
 
-    // Если стор еще не инициализирован ИЛИ нет активной вкладки, показываем лоадер/заглушку
     if (!isStoreInitialized || !activeTab) {
-        // Если вкладки пусты (например, все закрыты), показываем кнопку
         if (isStoreInitialized && tabs.length === 0) {
             return (
                 <div className="flex flex-col h-screen bg-background text-foreground">
@@ -359,28 +338,23 @@ export default function HomePage() {
             );
         }
 
-        // Показываем полный скелет только при самой первой загрузке
         return <HomePageSkeleton />;
     }
 
-    // --- Если активной вкладки нет (например, все закрыты или при первой загрузке), показываем заглушку ---
     if (!activeTab) {
         return (
             <div className="flex flex-col h-screen bg-background text-foreground">
                 <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
-                        {/* ЛОГОТИП ЗДЕСЬ */}
-                        {/* ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ ПУТЬ */}
                         {isMounted ? (
                             <Image
                                 src={logoSrc}
                                 alt="Nextman Logo"
                                 width={46}
                                 height={46}
-                                key={logoSrc} // Добавляем key, чтобы React точно перерендерил <img> при смене src
+                                key={logoSrc}
                             />
                         ) : (
-                            // Показываем скелетон, пока не определена тема
                             <div className="skeleton w-7 h-7 rounded-sm"></div>
                         )}
                         <h1 className="text-xl font-bold">
@@ -388,22 +362,18 @@ export default function HomePage() {
                         </h1>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
-                        {/* Все главные кнопки */}
                         <EnvironmentManager user={user} />
                         <HistorySidebar user={user} />
                         <ShareButton user={user} />
 
-                        {/* Разделитель */}
                         <div className="w-px h-6 bg-border mx-2"></div>
 
-                        {/* Наш чистый компонент */}
                         <SettingsDropdown user={user} />
 
                         <AuthButton />
                     </div>
                 </header>
                 <main className="flex items-center justify-center flex-grow">
-                    {/* Кнопка "Создать запрос" появляется, если все вкладки были закрыты */}
                     <Button onClick={handleAddTab}>
                         {t("main.create_request_button")}
                     </Button>
@@ -412,7 +382,6 @@ export default function HomePage() {
         );
     }
 
-    // --- ЛОГИКА ДЛЯ ОПРЕДЕЛЕНИЯ, ПОКАЗЫВАТЬ ЛИ ПРЕВЬЮ ---
     const response = activeTab.response;
     const showPreviewTab =
         response?.contentType &&
@@ -426,8 +395,6 @@ export default function HomePage() {
         <div className="flex flex-col h-screen bg-background text-foreground">
             <header className="p-4 border-b flex-shrink-0 flex items-center justify-between">
                 <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
-                    {/* ЛОГОТИП ЗДЕСЬ */}
-                    {/* ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ ПУТЬ И ЗДЕСЬ */}
                     {isMounted ? (
                         <Image
                             src={logoSrc}
@@ -442,15 +409,12 @@ export default function HomePage() {
                     <h1 className="text-xl font-bold">{t("header.title")}</h1>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
-                    {/* Главные, всегда видимые кнопки */}
                     <EnvironmentManager user={user} />
                     <HistorySidebar user={user} />
                     <ShareButton user={user} />
 
-                    {/* Разделитель */}
                     <div className="w-px h-6 bg-border mx-2"></div>
 
-                    {/* Выпадающее меню для всего остального */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
@@ -479,12 +443,10 @@ export default function HomePage() {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* Аутентификация отдельно */}
                     <AuthButton />
                 </div>
             </header>
 
-            {/* Панель с вкладками запросов */}
             <div className="flex items-center border-b bg-muted/40 p-1 gap-1 overflow-x-auto overflow-y-hidden">
                 {tabs.map((tab) => {
                     const displayName =
@@ -547,7 +509,7 @@ export default function HomePage() {
                                         onBlur={(e) => {
                                             const newName =
                                                 e.target.value.trim();
-                                            // Добавляем isDirty: true при изменении имени
+
                                             updateActiveTab({
                                                 name:
                                                     newName ||
@@ -610,32 +572,26 @@ export default function HomePage() {
                     <Plus className="h-4 w-4" />
                 </Button>
 
-                {/* Добавляем счетчик и используем нашу функцию-обертку */}
                 <span className="text-xs text-muted-foreground ml-2">
                     ({tabs.length}/{MAX_TABS})
                 </span>
             </div>
 
-            {/* Главная структура с сайдбаром коллекций и основной рабочей областью */}
             <ResizablePanelGroup direction="horizontal" className="flex-grow">
-                {/* Левая панель: Коллекции */}
                 <ResizablePanel defaultSize={20} minSize={15}>
                     <CollectionsSidebar />
                 </ResizablePanel>
 
                 <ResizableHandle withHandle />
 
-                {/* Правая панель: Основной контент (запрос/ответ) */}
                 <ResizablePanel defaultSize={80}>
                     <main className="h-full p-4">
                         <ResizablePanelGroup
                             direction="vertical"
                             className="h-full"
                         >
-                            {/* Верхняя панель: Запрос */}
                             <ResizablePanel defaultSize={40} minSize={20}>
                                 <div className="p-4 h-full flex flex-col gap-4">
-                                    {/* Строка URL */}
                                     <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
                                         <Select
                                             value={activeTab.method}
@@ -671,7 +627,6 @@ export default function HomePage() {
                                             placeholder="https://api.example.com"
                                             className="flex-grow"
                                         />
-                                        {/* Добавляем кнопку Save рядом с Send */}
                                         <SaveRequestDialog />
                                         <Button
                                             onClick={sendRequest}
@@ -682,7 +637,6 @@ export default function HomePage() {
                                                 : t("main.send_button")}
                                         </Button>
                                     </div>
-                                    {/* Табы для параметров, заголовков, тела запроса */}
                                     <Tabs
                                         defaultValue="params"
                                         className="flex-grow flex flex-col"
@@ -707,7 +661,6 @@ export default function HomePage() {
                                         >
                                             <KeyValueEditor
                                                 pairs={activeTab.queryParams}
-                                                // Меняем setPairs на onPairsChange
                                                 onPairsChange={
                                                     handleQueryParamsChange
                                                 }
@@ -725,7 +678,6 @@ export default function HomePage() {
                                         >
                                             <KeyValueEditor
                                                 pairs={activeTab.headers}
-                                                // Меняем setPairs на onPairsChange
                                                 onPairsChange={
                                                     handleHeadersChange
                                                 }
@@ -756,14 +708,12 @@ export default function HomePage() {
 
                             <ResizableHandle withHandle />
 
-                            {/* Нижняя панель: Ответ */}
                             <ResizablePanel defaultSize={60} minSize={20}>
                                 <div className="p-4 h-full flex flex-col">
                                     <div className="flex items-center gap-4 mb-2">
                                         <h2 className="text-lg font-semibold">
                                             {t("main.response_title")}
                                         </h2>
-                                        {/* Этот блок не анимируем, т.к. он должен обновляться мгновенно */}
                                         {activeTab.response && (
                                             <div className="flex items-center gap-4 text-sm">
                                                 <span>
@@ -806,7 +756,6 @@ export default function HomePage() {
                                         )}
                                     </div>
 
-                                    {/* Анимируем переключение между состоянием с ответом и заглушкой */}
                                     <AnimatePresence mode="wait">
                                         {response ? (
                                             <motion.div
@@ -817,7 +766,6 @@ export default function HomePage() {
                                                 transition={{ duration: 0.2 }}
                                                 className="flex-grow flex flex-col min-h-0"
                                             >
-                                                {/* Используем defaultValue, чтобы таб не сбрасывался при ререндере */}
                                                 <Tabs
                                                     defaultValue={
                                                         showPreviewTab

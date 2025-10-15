@@ -24,7 +24,6 @@ import {
 import Image from "next/image";
 import { useTheme } from "next-themes";
 
-// --- КОМПОНЕНТ СКЕЛЕТА ЗАГРУЗКИ ---
 export function ReadOnlyPageSkeleton() {
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -39,7 +38,6 @@ export function ReadOnlyPageSkeleton() {
                 </div>
             </header>
             <main className="container mx-auto py-8 space-y-8">
-                {/* Скелет для Hero-секции */}
                 <div className="p-6 border rounded-lg bg-card">
                     <Skeleton className="h-9 w-3/4 mb-4" />
                     <div className="flex justify-between items-center">
@@ -47,7 +45,6 @@ export function ReadOnlyPageSkeleton() {
                         <Skeleton className="h-7 w-24" />
                     </div>
                 </div>
-                {/* Скелет для двух колонок */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader>
@@ -71,13 +68,11 @@ export function ReadOnlyPageSkeleton() {
     );
 }
 
-// Добавляем `shareName` в пропсы
 interface ReadOnlyPageProps {
-    requestTab: any; // Используй свой настоящий тип вместо any
+    requestTab: any;
     shareName: string | null;
 }
 
-// --- КОМПОНЕНТЫ, АДАПТИРОВАННЫЕ ДЛЯ READ-ONLY ---
 const CodeEditor = dynamic(
     () => import("@/components/core/editor").then((mod) => mod.CodeEditor),
     { ssr: false, loading: () => <Skeleton className="w-full h-full" /> }
@@ -216,7 +211,6 @@ function ReadOnlyKeyValue({ pairs, title }: { pairs: any[]; title: string }) {
 
     const validPairs = pairs?.filter((p) => p && p.key);
     if (!validPairs || validPairs.length === 0) {
-        // Динамический ключ для перевода заглушки
         const translationKey = `share_page.no_${title
             .toLowerCase()
             .replace(" ", "_")}` as const;
@@ -242,7 +236,6 @@ function ReadOnlyKeyValue({ pairs, title }: { pairs: any[]; title: string }) {
     );
 }
 
-// --- ОСНОВНОЙ КОМПОНЕНТ СТРАНИЦЫ
 function SharedRequestViewer({
     requestTab,
     pageTitle,
@@ -250,15 +243,12 @@ function SharedRequestViewer({
     requestTab: RequestTab;
     pageTitle: string;
 }) {
-    // --- Хуки и состояние ---
     const { t } = useTranslation();
     const [isMounted, setIsMounted] = useState(false);
     const [copiedItem, setCopiedItem] = useState<string | null>(null);
 
-    // --- ПОЛУЧАЕМ ТЕКУЩУЮ ТЕМУ ---
     const { resolvedTheme } = useTheme();
 
-    // --- ДИНАМИЧЕСКИ ВЫБИРАЕМ ПУТЬ К ЛОГОТИПУ ---
     const logoSrc =
         resolvedTheme === "dark"
             ? "/nextman-logo-light.png"
@@ -270,12 +260,10 @@ function SharedRequestViewer({
 
     const response = requestTab.response;
 
-    // --- Эффект для безопасного монтирования на клиенте ---
     React.useEffect(() => {
         setIsMounted(true);
     }, []);
 
-    // --- Обработчик копирования ---
     const handleCopy = (itemKey: string, text: string | null) => {
         if (!text) return;
         navigator.clipboard.writeText(text);
@@ -283,7 +271,6 @@ function SharedRequestViewer({
         setTimeout(() => setCopiedItem(null), 2000);
     };
 
-    // --- Мемоизированные переменные для производительности ---
     const showPreviewTab = React.useMemo(
         () =>
             response?.contentType &&
@@ -328,8 +315,6 @@ function SharedRequestViewer({
                     <div className="container mx-auto py-3 flex justify-between items-center">
                         {isMounted ? (
                             <div className="flex items-center gap-2">
-                                {/*  ЛОГОТИП ЗДЕСЬ */}
-                                {/*  ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ ПУТЬ */}
                                 <Image
                                     src={logoSrc}
                                     alt="Nextman Logo"
@@ -708,7 +693,6 @@ function SharedRequestViewer({
     );
 }
 
-// --- КОМПОНЕНТ-ОБЕРТКА ДЛЯ ПРОВАЙДЕРОВ ---
 export function ReadOnlyPage({ requestTab, shareName }: ReadOnlyPageProps) {
     const { t } = useTranslation();
 
